@@ -1,5 +1,6 @@
 ![image](https://github.com/user-attachments/assets/4d2bbbed-b16e-4c66-a7b1-67eba175f9fa)
 
+- 제품명: 아두캠 젯슨용 IMX477 HQ 카메라 모듈 -12.3MP (Arducam for Jetson IMX477 HQ Camera - 12.3MP)
 - 해상도: 12.3MP
 - 커넥터 타입: 22핀 MIPI CSI-2 인터페이스
 - 호환성: Jetson Nano, Xavier NX, Jetson Orin 시리즈
