@@ -11,3 +11,4 @@
 - IAR Embedded Workbench
 - MDK-ARM
 - STM32CubeIDE
+- STM32CubeMX <- 이를 활용하여 FreeRTOS를 쉽게 설정할 수 있음.
