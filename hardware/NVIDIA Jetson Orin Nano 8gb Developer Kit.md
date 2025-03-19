@@ -7,3 +7,6 @@
 - 비디오 디코딩	4K60 H.265/H.264 디코딩
 - 전력 소비	7W / 15W 모드
 - 운영 체제	Ubuntu 기반 JetPack SDK
+- 전원 공급: DC 잭(5.5mm/2.1mm): 5V 4A 전원 공급 or USB-C 전원 입력 지원
+- Expansion Header Connecttions
+- ![image](https://github.com/user-attachments/assets/0089df09-a971-41ee-9596-ae962f292475)
