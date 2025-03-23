@@ -1,4 +1,4 @@
-![image01.png](attachment:541b5353-5d53-4df4-bd08-3d93a92c61a9:image01.png)
+![image01.png](https://global.discourse-cdn.com/nvidia/original/2X/6/6f589f87224371b47e04e736ee87bff1288ba7cc.png))
 
 ![img.png](attachment:1f51143b-2583-40a8-be04-ceac450a04e8:img.png)
 
