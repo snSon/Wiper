@@ -18,7 +18,7 @@ STM32CubeIDE를 설치하고 실행하면 이런 화면일 것이다.
 
 ![image.png](image%201.png)
 
-그리고 우리가 사용하는 보드인 STM32FF446RE를 검색창에 입력하고 Next를 누른다.
+그리고 우리가 사용하는 보드인 STM32F446RE를 검색창에 입력하고 Next를 누른다.
 
 ![image.png](image%202.png)
 
