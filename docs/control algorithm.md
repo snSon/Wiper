@@ -1,5 +1,7 @@
 # 차량 제어
+![자율주행 알고리즘 아키텍처](https://github.com/user-attachments/assets/bb90f720-9b74-4edb-ad20-5845d9c14c62)
 
+http://weekly.tta.or.kr/weekly/files/20215519055532_weekly.pdf
 ## 1. MPC 기반 차량 제어
 
 MPC(Model Predictive Control)는 Optimal Control의 한 방법으로, 속도 및 가속력, 주변 환경 조건을 입력값으로 받아 최적의 제어 명령을 생성하는 방식이다. 상태 변수를 기반으로 최적의 제어 명령을 출력하는 것이 특징이다.
