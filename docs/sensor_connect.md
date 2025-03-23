@@ -1,6 +1,6 @@
 ![image01.png](https://global.discourse-cdn.com/nvidia/original/2X/6/6f589f87224371b47e04e736ee87bff1288ba7cc.png))
 
-![img.png](attachment:1f51143b-2583-40a8-be04-ceac450a04e8:img.png)
+![img.png](https://blog.kakaocdn.net/dn/bqCM4H/btsI40omYje/H3rKQOTgH7g12j4ivHY9d1/img.png))
 
 핀 연결 - jetson I2C 연결
 Jetson Nano 	–   	mcu
