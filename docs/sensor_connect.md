@@ -3,11 +3,12 @@
 ![img.png](https://blog.kakaocdn.net/dn/bqCM4H/btsI40omYje/H3rKQOTgH7g12j4ivHY9d1/img.png))
 
 핀 연결 - jetson I2C 연결
-Jetson Nano 	–   	mcu
-3.3V (전원)		        VCC
-GND			        GND
-I2C SDA (Pin 3)	 	SDA
-I2C SCL (Pin 5)	 	SCL
+|Jetson Nano|mcu|
+|---|---|
+|3.3V (전원)|VCC|
+|GND|GND|
+|I2C SDA (Pin 3)|SDA|
+|I2C SCL (Pin 5)|SCL|
 
 Jetson의 GPIO는 3.3V로 동작하므로, 5V 센서 사용 시 레벨 변환기 필수.
 
