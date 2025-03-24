@@ -24,7 +24,11 @@ DC 모터		PA8 (TIM1_CH1)
 가속도 센서	I2C1 (PB8, PB9)
 
 pip install Jetson.GPIO  # GPIO 핀 제어 (LED, 기본 입출력)
+
 pip install pyserial  # MCU와 시리얼 통신
+
 pip install smbus2    # I2C 통신 (센서/모터 제어)
+
 pip install spidev    # SPI 통신 (레이더 센서)
+
 pip install Adafruit_GPIO  # I2C 기반 환경 센서 제어
