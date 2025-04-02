@@ -10,3 +10,5 @@
 - 전원 공급: DC 잭(5.5mm/2.1mm): 5V 4A 전원 공급 or USB-C 전원 입력 지원
 - Expansion Header Connecttions
 - ![image](https://github.com/user-attachments/assets/0089df09-a971-41ee-9596-ae962f292475)
+
+* ls /dev/spidev* 결과로 SPI 0번과 2번이 열린것을 확인할 수 있었음(1번 없음)
