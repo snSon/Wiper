@@ -1,5 +1,5 @@
-import torch  # PyTorch 라이브러리 임포트
-import torch.nn as nn  # 신경망 관련 모듈 임포트
+import torch  # PyTorch 라이브러리
+import torch.nn as nn  # 신경망 모듈 
 import math
 
 class dehaze_net(nn.Module):
