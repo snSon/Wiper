@@ -1,8 +1,8 @@
-import torch  # PyTorch 라이브러리 임포트
-import torch.nn as nn  # 신경망 관련 모듈 임포트
-import torchvision  # 이미지 처리 관련 라이브러리 임포트
-import torch.backends.cudnn as cudnn  # CUDA 최적화 모듈 임포트
-import torch.optim  # 최적화 알고리즘 모듈 임포트
+import torch  # PyTorch 라이브러리 
+import torch.nn as nn  # 신경망 모듈 
+import torchvision  # 이미지 처리 관련 라이브러리 
+import torch.backends.cudnn as cudnn  # CUDA 최적화 모듈
+import torch.optim  # 최적화 알고리즘 모듈 
 import os  # OS 관련 기능 제공 모듈
 import sys  # 시스템 관련 기능 제공 모듈
 import argparse  # 명령줄 인자 파싱을 위한 모듈
