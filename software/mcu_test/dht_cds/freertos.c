@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim2; // timer handle
@@ -111,6 +112,7 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
 
   HAL_UART_Receive_IT(&huart2, &rx_data, 1);  // UART 수신 인터럽트 시작
+  // Bluetooth_SendString("Start BLE Test\r\n");
   Sensors_Init();  // DHT11용 타이머 시작 등
 
   uint8_t temp = 0, humi = 0;
@@ -118,17 +120,24 @@ void StartDefaultTask(void *argument)
   char msg[64];
   for (;;)
   {
+	  HAL_UART_Transmit(&huart2, (uint8_t*)"Hello BLE\r\n", 12, HAL_MAX_DELAY);
       // ① 센서 값 읽기
       uint8_t ok = ReadDHT11(&temp, &humi);  // 온습도
       light = ReadCDS();                     // 조도
 
       // ② 메시지 구성
       if (ok)
+      {
+    	  SendSensorDataToBluetooth(temp, humi, light); // bluetooth
           snprintf(msg, sizeof(msg), "Temp: %d°C, Humi: %d%%, Light: %d\r\n", temp, humi, light);
+      }
       else
+      {
+    	  Bluetooth_SendString("DHT11 Read Fail\r\n"); // bluetooth
           snprintf(msg, sizeof(msg), "DHT11 Read Fail, Light: %d\r\n", light);
-
+      }
       // ③ UART 전송
+      HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
       HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
       // ④ 일정 주기 대기
@@ -141,3 +150,4 @@ void StartDefaultTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
+
