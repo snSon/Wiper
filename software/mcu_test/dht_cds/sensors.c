@@ -4,18 +4,32 @@
 #include <stdio.h>
 
 // ==== 외부 핸들 ====
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern ADC_HandleTypeDef hadc1;  // ADC1 핸들 선언
 extern TIM_HandleTypeDef htim2;  // DHT11용 타이머
 
 // ==== DHT11 정의 ====
-#define DHT11_PORT GPIOA
-#define DHT11_PIN GPIO_PIN_10
+#define DHT11_PORT GPIOB
+#define DHT11_PIN GPIO_PIN_3
 
 // GPIO 읽기 최적화 매크로
 #define DHT11_INPUT() ((DHT11_PORT->IDR & DHT11_PIN) ? GPIO_PIN_SET : GPIO_PIN_RESET)
 
 // ==== 내부 함수 정의 ====
+
+void Bluetooth_SendString(const char* str)
+{
+	HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
+}
+
+void SendSensorDataToBluetooth(uint8_t temperature, uint8_t humidity, uint16_t light)
+{
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "Temp: %d°C, Humi: %d%%, Light: %d\r\n", temperature, humidity, light);
+    Bluetooth_SendString(buffer);
+}
 
 static void DHT11_SetPinOutput(void)
 {
@@ -70,17 +84,20 @@ uint8_t ReadDHT11(uint8_t *temperature, uint8_t *humidity)
     // 응답 신호 체크
     if (!DHT11_WaitForPinState(GPIO_PIN_RESET, 200))
     {
+    	HAL_UART_Transmit(&huart1, (uint8_t*)"Step1 Fail: No LOW from DHT\r\n", 30, HAL_MAX_DELAY);
         HAL_UART_Transmit(&huart2, (uint8_t*)"Step1 Fail: No LOW from DHT\r\n", 30, HAL_MAX_DELAY);
         return 0;
     }
 
     if (!DHT11_WaitForPinState(GPIO_PIN_SET, 200))
     {
+    	HAL_UART_Transmit(&huart1, (uint8_t*)"Step2 Fail: No HIGH from DHT\r\n", 31, HAL_MAX_DELAY);
         HAL_UART_Transmit(&huart2, (uint8_t*)"Step2 Fail: No HIGH from DHT\r\n", 31, HAL_MAX_DELAY);
         return 0;
     }
     else
     {
+    	HAL_UART_Transmit(&huart1, (uint8_t*)"DHT11 Read OK\r\n", 16, HAL_MAX_DELAY);
         HAL_UART_Transmit(&huart2, (uint8_t*)"DHT11 Read OK\r\n", 16, HAL_MAX_DELAY);
     }
 
@@ -92,7 +109,8 @@ uint8_t ReadDHT11(uint8_t *temperature, uint8_t *humidity)
             if (!DHT11_WaitForPinState(GPIO_PIN_RESET, 500))
             {
                 char failmsg[64];
-                sprintf(failmsg, "Fail LOW at Bit[%d][%d]\r\n", j, i);
+                // sprintf(failmsg, "Fail LOW at Bit[%d][%d]\r\n", j, i);
+                HAL_UART_Transmit(&huart1, (uint8_t*)failmsg, strlen(failmsg), HAL_MAX_DELAY);
                 HAL_UART_Transmit(&huart2, (uint8_t*)failmsg, strlen(failmsg), HAL_MAX_DELAY);
                 return 0;
             }
@@ -101,34 +119,38 @@ uint8_t ReadDHT11(uint8_t *temperature, uint8_t *humidity)
             if (!DHT11_WaitForPinState(GPIO_PIN_SET, 500))
             {
                 char failmsg[64];
-                sprintf(failmsg, "Fail HIGH at Bit[%d][%d]\r\n", j, i);
+                // sprintf(failmsg, "Fail HIGH at Bit[%d][%d]\r\n", j, i);
+                HAL_UART_Transmit(&huart1, (uint8_t*)failmsg, strlen(failmsg), HAL_MAX_DELAY);
                 HAL_UART_Transmit(&huart2, (uint8_t*)failmsg, strlen(failmsg), HAL_MAX_DELAY);
                 return 0;
             }
             uint32_t t_duration = __HAL_TIM_GET_COUNTER(&htim2) - t_start;
 
             // 디버깅 메시지
-            char msg[64];
-            sprintf(msg, "Bit[%d][%d] = %lu us (%d)\r\n", j, i, t_duration, (t_duration >= 40));
-            HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+//            char msg[64];
+//            sprintf(msg, "Bit[%d][%d] = %lu us (%d)\r\n", j, i, t_duration, (t_duration >= 40));
+//            HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+//            HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-            // 비트 조합
-            bits[j] <<= 1;
-            if (t_duration >= 40) bits[j] |= 1;
+//            // 비트 조합
+//            bits[j] <<= 1;
+//            if (t_duration >= 40) bits[j] |= 1;
         }
     }
 
     // 디버깅: 수신된 5바이트 출력 -------------------------------------------------------------------
-    for (int k = 0; k < 5; k++)
-    {
-        char byte_buf[64];
-        sprintf(byte_buf, "bits[%d] = %02X\r\n", k, bits[k]);
-        HAL_UART_Transmit(&huart2, (uint8_t*)byte_buf, strlen(byte_buf), HAL_MAX_DELAY);
-    }
+//    for (int k = 0; k < 5; k++)
+//    {
+//        char byte_buf[64];
+//        sprintf(byte_buf, "bits[%d] = %02X\r\n", k, bits[k]);
+//        HAL_UART_Transmit(&huart1, (uint8_t*)byte_buf, strlen(byte_buf), HAL_MAX_DELAY);
+//        HAL_UART_Transmit(&huart2, (uint8_t*)byte_buf, strlen(byte_buf), HAL_MAX_DELAY);
+//    }
 
     // 체크섬 확인
     if ((uint8_t)(bits[0] + bits[1] + bits[2] + bits[3]) != bits[4])
     {
+    	HAL_UART_Transmit(&huart1, (uint8_t*)"Checksum Fail\r\n", 16, HAL_MAX_DELAY);
         HAL_UART_Transmit(&huart2, (uint8_t*)"Checksum Fail\r\n", 16, HAL_MAX_DELAY);
         return 0;
     }
