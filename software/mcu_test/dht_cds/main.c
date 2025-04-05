@@ -50,6 +50,7 @@ uint8_t spi1_tx_buf[10];
 
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim2;
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 
 void SPI1_Start_Receive_IT()
@@ -57,7 +58,7 @@ void SPI1_Start_Receive_IT()
 	HAL_SPI_Receive_IT(&hspi1, spi1_rx_buf, 1); // 1byte 먼저 수신 대기
 }
 
-void Timer_Accuracy_Test() // 타이머 정확토 테스트
+void Timer_Accuracy_Test() // 타이머 정확도 테스트
 {
     HAL_TIM_Base_Start(&htim2);
     for (int i = 0; i < 5; i++)
@@ -68,6 +69,7 @@ void Timer_Accuracy_Test() // 타이머 정확토 테스트
 
         char buf[64];
         sprintf(buf, "Timer count in 1s: %lu us\r\n", (after - before));
+        HAL_UART_Transmit(&huart1, (uint8_t*)buf, strlen(buf), HAL_MAX_DELAY);
         HAL_UART_Transmit(&huart2, (uint8_t*)buf, strlen(buf), HAL_MAX_DELAY);
     }
     HAL_TIM_Base_Stop(&htim2);
@@ -110,6 +112,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM2_Init();
   MX_ADC1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
   // 타이머 정확도 테스트 실행
@@ -181,14 +184,14 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+/*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2)
     {
         HAL_UART_Transmit(&huart2, &rx_data, 1, HAL_MAX_DELAY);  // 받은 데이터 다시 전송 (에코)
         HAL_UART_Receive_IT(&huart2, &rx_data, 1);               // 다시 수신 대기
     }
-}
+}*/
 
 /* USER CODE END 4 */
 
