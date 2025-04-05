@@ -1,20 +1,9 @@
 /* USER CODE BEGIN Header */
-/**
+/*
   ******************************************************************************
   * File Name          : freertos.c
   * Description        : Code for freertos applications
   ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -33,6 +22,7 @@ extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim2; // timer handle
 extern uint8_t rx_data;
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -121,34 +111,29 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
 
   HAL_UART_Receive_IT(&huart2, &rx_data, 1);  // UART 수신 인터럽트 시작
-  Sensors_Init();  // ✅ DHT11용 타이머 시작 등
+  Sensors_Init();  // DHT11용 타이머 시작 등
 
   uint8_t temp = 0, humi = 0;
   uint16_t light = 0;
   char msg[64];
-
   for (;;)
-     {
+  {
+      // ① 센서 값 읽기
+      uint8_t ok = ReadDHT11(&temp, &humi);  // 온습도
+      light = ReadCDS();                     // 조도
 
-	  	  uint8_t ok;
-//	  	  for (int attempt = 0; attempt < 3; attempt++) {
-//	  		  ok = ReadDHT11(&temp, &humi);
-//	  		  if (ok) break;
-//	  		  osDelay(200);  // 재시도 전 잠시 대기
-//	  	  }
-	  	  ok = ReadDHT11(&temp, &humi);
+      // ② 메시지 구성
+      if (ok)
+          snprintf(msg, sizeof(msg), "Temp: %d°C, Humi: %d%%, Light: %d\r\n", temp, humi, light);
+      else
+          snprintf(msg, sizeof(msg), "DHT11 Read Fail, Light: %d\r\n", light);
 
-         light = ReadCDS();   // 조도센서 (CDS) 읽기
+      // ③ UART 전송
+      HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-         // DHT11 읽기 및 UART 출력 메시지 구성
-         if (ok) snprintf(msg, sizeof(msg), "Temp: %d°C, Humi: %d%%, Light: %d\r\n", temp, humi, light);
-         else snprintf(msg, sizeof(msg), "DHT11 Read Fail, Light: %d\r\n", light);
-
-         // ④ UART 전송
-         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-
-         osDelay(2000);  // 2초마다 갱신
-     }
+      // ④ 일정 주기 대기
+      osDelay(2000);  // 2초마다 갱신
+  }
   /* USER CODE END StartDefaultTask */
 }
 
@@ -156,4 +141,3 @@ void StartDefaultTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-
