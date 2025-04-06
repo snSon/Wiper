@@ -4,6 +4,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
+#include "i2c.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -113,6 +114,7 @@ int main(void)
   MX_TIM2_Init();
   MX_ADC1_Init();
   MX_USART1_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   // 타이머 정확도 테스트 실행
@@ -184,14 +186,14 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-/*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2)
     {
-        HAL_UART_Transmit(&huart2, &rx_data, 1, HAL_MAX_DELAY);  // 받은 데이터 다시 전송 (에코)
+        // HAL_UART_Transmit(&huart2, &rx_data, 1, HAL_MAX_DELAY);  // 받은 데이터 다시 전송 (에코)
         HAL_UART_Receive_IT(&huart2, &rx_data, 1);               // 다시 수신 대기
     }
-}*/
+}
 
 /* USER CODE END 4 */
 
