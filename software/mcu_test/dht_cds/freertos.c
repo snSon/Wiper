@@ -4,6 +4,7 @@
   * File Name          : freertos.c
   * Description        : Code for freertos applications
   ******************************************************************************
+*/
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -15,6 +16,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sensors.h"
+#include "mpu6050.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -48,12 +50,19 @@ extern uint8_t rx_data;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+// ==== 센서 로그 출력 함수 ====
+void SensorLogPrinter(const char* msg)
+{
+    char buf[128];
+    snprintf(buf, sizeof(buf), "[SENSOR LOG] %s\r\n", msg);
+    HAL_UART_Transmit(&huart2, (uint8_t*)buf, strlen(buf), HAL_MAX_DELAY);
+}
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -109,45 +118,82 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  /* USER CODE BEGIN StartDefaultTask */
+    SetSensorLogCallback(SensorLogPrinter);  // 로그 콜백 등록
+    Sensors_Init();  // 타이머 시작
 
-  HAL_UART_Receive_IT(&huart2, &rx_data, 1);  // UART 수신 인터럽트 시작
-  // Bluetooth_SendString("Start BLE Test\r\n");
-  Sensors_Init();  // DHT11용 타이머 시작 등
+    if (MPU6050_Init())
+        HAL_UART_Transmit(&huart2, (uint8_t*)"MPU6050 Init OK\r\n", 18, HAL_MAX_DELAY);
+    else
+        HAL_UART_Transmit(&huart2, (uint8_t*)"MPU6050 Init FAIL\r\n", 20, HAL_MAX_DELAY);
 
-  uint8_t temp = 0, humi = 0;
-  uint16_t light = 0;
-  char msg[64];
-  for (;;)
-  {
-	  HAL_UART_Transmit(&huart2, (uint8_t*)"Hello BLE\r\n", 12, HAL_MAX_DELAY);
-      // ① 센서 값 읽기
-      uint8_t ok = ReadDHT11(&temp, &humi);  // 온습도
-      light = ReadCDS();                     // 조도
+    uint8_t temp = 0, humi = 0;
+    uint16_t light = 0;
+    char msg[512];  // 출력 확장을 위해 버퍼 크기 증가
 
-      // ② 메시지 구성
-      if (ok)
-      {
-    	  SendSensorDataToBluetooth(temp, humi, light); // bluetooth
-          snprintf(msg, sizeof(msg), "Temp: %d°C, Humi: %d%%, Light: %d\r\n", temp, humi, light);
-      }
-      else
-      {
-    	  Bluetooth_SendString("DHT11 Read Fail\r\n"); // bluetooth
-          snprintf(msg, sizeof(msg), "DHT11 Read Fail, Light: %d\r\n", light);
-      }
-      // ③ UART 전송
-      HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-      HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+    for (;;)
+    {
+        // (1) 센서 데이터 읽기
+        MPU6050_Read_Accel();
+        MPU6050_Read_Gyro();  // 자이로도 읽기
 
-      // ④ 일정 주기 대기
-      osDelay(2000);  // 2초마다 갱신
-  }
-  /* USER CODE END StartDefaultTask */
+        float pitch = MPU6050_CalcPitch();
+        float roll  = MPU6050_CalcRoll();
+
+        int16_t ax = MPU6050_GetAccelX();
+        int16_t ay = MPU6050_GetAccelY();
+        int16_t az = MPU6050_GetAccelZ();
+
+        int16_t gx = MPU6050_GetGyroX();
+        int16_t gy = MPU6050_GetGyroY();
+        int16_t gz = MPU6050_GetGyroZ();
+
+        light = ReadCDS();
+        uint8_t ok = ReadDHT11(&temp, &humi);
+
+        // (2) 출력 메시지 구성
+        if (ok)
+        {
+            snprintf(msg, sizeof(msg),
+                "[DHT11] Temp: %d°C, Humi: %d%%\r\n"
+                "[CDS]   Light: %d\r\n"
+                "[MPU6050]\r\n"
+                "  Accel -> X: %d, Y: %d, Z: %d\r\n"
+                "  Gyro  -> X: %d, Y: %d, Z: %d\r\n"
+                "  Pitch: %.2f°, Roll: %.2f°\r\n"
+                "-------------------------------\r\n",
+                temp, humi, light,
+                ax, ay, az,
+                gx, gy, gz,
+                pitch, roll
+            );
+        }
+        else
+        {
+            snprintf(msg, sizeof(msg),
+                "[DHT11] Read Fail\r\n"
+                "[CDS]   Light: %d\r\n"
+                "[MPU6050]\r\n"
+                "  Accel -> X: %d, Y: %d, Z: %d\r\n"
+                "  Gyro  -> X: %d, Y: %d, Z: %d\r\n"
+                "  Pitch: %.2f°, Roll: %.2f°\r\n"
+                "-------------------------------\r\n",
+                light,
+                ax, ay, az,
+                gx, gy, gz,
+                pitch, roll
+            );
+        }
+
+        // (3) UART 전송
+        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+
+        // (4) 주기 대기
+        osDelay(2000);  // 2초
+    }
 }
 
+  /* USER CODE END StartDefaultTask */
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-
