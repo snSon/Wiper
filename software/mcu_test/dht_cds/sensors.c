@@ -16,7 +16,8 @@ extern TIM_HandleTypeDef htim2;
 // ==== 로그 콜백 포인터 ====
 static void (*SensorLogCallback)(const char* msg) = NULL;
 
-void SetSensorLogCallback(void (*callback)(const char* msg)) {
+void SetSensorLogCallback(void (*callback)(const char* msg))
+{
     SensorLogCallback = callback;
 }
 
@@ -24,7 +25,8 @@ void SetSensorLogCallback(void (*callback)(const char* msg)) {
 #define DHT11_INPUT() ((DHT11_PORT->IDR & DHT11_PIN) ? GPIO_PIN_SET : GPIO_PIN_RESET)
 
 // ==== DHT11 관련 내부 함수 ====
-static void DHT11_SetPinOutput(void) {
+static void DHT11_SetPinOutput(void)
+{
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = DHT11_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -33,7 +35,8 @@ static void DHT11_SetPinOutput(void) {
     HAL_GPIO_Init(DHT11_PORT, &GPIO_InitStruct);
 }
 
-static void DHT11_SetPinInput(void) {
+static void DHT11_SetPinInput(void)
+{
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = DHT11_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -41,22 +44,26 @@ static void DHT11_SetPinInput(void) {
     HAL_GPIO_Init(DHT11_PORT, &GPIO_InitStruct);
 }
 
-static uint8_t DHT11_WaitForPinState(GPIO_PinState state, uint32_t timeout_us) {
+static uint8_t DHT11_WaitForPinState(GPIO_PinState state, uint32_t timeout_us)
+{
     uint32_t start = __HAL_TIM_GET_COUNTER(&htim2);
-    while (DHT11_INPUT() != state) {
+    while (DHT11_INPUT() != state)
+    {
         if ((uint32_t)(__HAL_TIM_GET_COUNTER(&htim2) - start) >= timeout_us)
             return 0;
     }
     return 1;
 }
 
-void delay_us(uint32_t us) {
+void delay_us(uint32_t us)
+{
     uint32_t start = __HAL_TIM_GET_COUNTER(&htim2);
     while ((uint32_t)(__HAL_TIM_GET_COUNTER(&htim2) - start) < us);
 }
 
 // ==== DHT11 데이터 읽기 ====
-uint8_t ReadDHT11(uint8_t *temperature, uint8_t *humidity) {
+uint8_t ReadDHT11(uint8_t *temperature, uint8_t *humidity)
+{
     uint8_t bits[5] = {0};
 
     DHT11_SetPinOutput();
@@ -66,12 +73,14 @@ uint8_t ReadDHT11(uint8_t *temperature, uint8_t *humidity) {
     delay_us(60);
     DHT11_SetPinInput();
 
-    if (!DHT11_WaitForPinState(GPIO_PIN_RESET, 200)) {
+    if (!DHT11_WaitForPinState(GPIO_PIN_RESET, 200))
+    {
         if (SensorLogCallback) SensorLogCallback("Step1 Fail: No LOW from DHT");
         return 0;
     }
 
-    if (!DHT11_WaitForPinState(GPIO_PIN_SET, 200)) {
+    if (!DHT11_WaitForPinState(GPIO_PIN_SET, 200))
+    {
         if (SensorLogCallback) SensorLogCallback("Step2 Fail: No HIGH from DHT");
         return 0;
     }
