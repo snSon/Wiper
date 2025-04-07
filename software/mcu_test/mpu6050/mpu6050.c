@@ -17,6 +17,7 @@ static int16_t accel_z_raw = 0;
 static int16_t gyro_x_raw = 0;
 static int16_t gyro_y_raw = 0;
 static int16_t gyro_z_raw = 0;
+static float yaw_angle = 0.0f;
 
 uint8_t MPU6050_Init()
 {
@@ -85,4 +86,20 @@ float MPU6050_CalcRoll()
     if (isnan(az) || az == 0) return 0.0f;
 
     return atan2f(ay, az) * 180.0f / M_PI;
+}
+
+float MPU6050_CalcYaw(float dt)
+{
+	const float GYRO_SENS = 131.0f; // +- 250dps 범위라면 131
+	// 각속도를 degree/s 단위로 변환
+	float gyro_z = gyro_z_raw / GYRO_SENS;
+
+	// 시간(dt) 단위로 적분 -> yaw 각도 누적
+	yaw_angle += gyro_z * dt;
+
+	// 필요 시 -180 ~ +180 범위로 고정
+	if (yaw_angle > 180.0f) yaw_angle -= 360.0f;
+	if (yaw_angle < -180.0f) yaw_angle += 360.0f;
+
+	return yaw_angle;
 }
