@@ -138,6 +138,7 @@ void StartDefaultTask(void *argument)
 
         float pitch = MPU6050_CalcPitch();
         float roll  = MPU6050_CalcRoll();
+        float yaw = MPU6050_CalcYaw(0.02f); // 20 ms 기준
 
         int16_t ax = MPU6050_GetAccelX();
         int16_t ay = MPU6050_GetAccelY();
@@ -159,12 +160,12 @@ void StartDefaultTask(void *argument)
                 "[MPU6050]\r\n"
                 "  Accel -> X: %d, Y: %d, Z: %d\r\n"
                 "  Gyro  -> X: %d, Y: %d, Z: %d\r\n"
-                "  Pitch: %.2f°, Roll: %.2f°\r\n"
+                "  Pitch: %.2f°, Roll: %.2f°, YAW: %.2f°\r\n"
                 "-------------------------------\r\n",
                 temp, humi, light,
                 ax, ay, az,
                 gx, gy, gz,
-                pitch, roll
+                pitch, roll, yaw
             );
         }
         else
@@ -175,12 +176,12 @@ void StartDefaultTask(void *argument)
                 "[MPU6050]\r\n"
                 "  Accel -> X: %d, Y: %d, Z: %d\r\n"
                 "  Gyro  -> X: %d, Y: %d, Z: %d\r\n"
-                "  Pitch: %.2f°, Roll: %.2f°\r\n"
+                "  Pitch: %.2f°, Roll: %.2f°, YAW: %.2f°\r\n"
                 "-------------------------------\r\n",
                 light,
                 ax, ay, az,
                 gx, gy, gz,
-                pitch, roll
+                pitch, roll, yaw
             );
         }
 
