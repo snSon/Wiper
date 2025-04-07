@@ -21,5 +21,5 @@ int16_t MPU6050_GetGyroZ(void);
 // ==== 계산 함수 ====
 float MPU6050_CalcPitch(void);
 float MPU6050_CalcRoll(void);
-
+float MPU6050_CalcYaw(float dt);
 #endif /* MPU6050_H_ */
