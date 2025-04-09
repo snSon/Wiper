@@ -191,7 +191,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == USART1)  // 블루투스(UART1) 수신일 때만 콜백 호출
 	{
-		HAL_UART_Transmit(&huart2, (uint8_t*)"BLE RX\n", 7, HAL_MAX_DELAY);  // 로그 찍어보기
 		Bluetooth_RxCallback();  // BLE 명령 처리
 	}
 	else if (huart->Instance == USART2)
