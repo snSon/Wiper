@@ -12,13 +12,16 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include <string.h>
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sensors.h"
 #include "mpu6050.h"
-#include <string.h>
-#include <stdio.h>
+#include "motor.h"
+#include "queue.h"
+#include "bluetooth.h"
 
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
@@ -44,13 +47,14 @@ extern uint8_t rx_data;
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
-/* USER CODE END Variables */
-/* Definitions for defaultTask */
 osThreadId_t mpuTaskHandle;
 osThreadId_t dht11TaskHandle;
 osThreadId_t cdsTaskHandle;
 osMessageQueueId_t uartQueueHandle;
+QueueHandle_t motorQueueHandle; // 모터 명령 큐
+
+/* USER CODE END Variables */
+/* Definitions for defaultTask */
 
 
 const osThreadAttr_t mpuTask_attributes = {
@@ -80,6 +84,11 @@ const osThreadAttr_t uartTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+const osThreadAttr_t motorTask_attributes = {
+  .name = "motorTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,7 +96,8 @@ const osThreadAttr_t uartTask_attributes = {
 void StartMPUTask(void *argument);
 void StartDHT11Task(void *argument);
 void StartCDSTask(void *argument);
-void StartUARTTask(void *argument);  // 🔧 누락된 선언
+void StartUARTTask(void *argument);
+void StartMotorTask(void *argument);
 
 // ==== 센서 로그 출력 함수 ====
 void SensorLogPrinter(const char* msg)
@@ -123,6 +133,9 @@ void MX_FREERTOS_Init(void) {
   cdsTaskHandle    = osThreadNew(StartCDSTask, NULL, &cdsTask_attributes);
   uartQueueHandle = osMessageQueueNew(8, sizeof(SensorMessage_t), &uartQueue_attributes);
   osThreadNew(StartUARTTask, NULL, &uartTask_attributes);
+   motorQueueHandle = xQueueCreate(8, sizeof(uint8_t)); // 모터 큐 생성
+   osThreadNew(StartMotorTask, NULL, &motorTask_attributes); // 모터 제어 Task 생성
+   Bluetooth_Init();  // BLE UART1 수신 시작
 }
 
 
@@ -153,7 +166,10 @@ void StartMPUTask(void *argument)
 
         SensorMessage_t msg_out;
         snprintf(msg_out.message, sizeof(msg_out.message),
-                 "[MPU6050] Accel: X=%d Y=%d Z=%d | Gyro: X=%d Y=%d Z=%d | Pitch=%.2f Roll=%.2f Yaw=%.2f\r\n",
+                 "[MPU6050]\r\n"
+                 " Accel: X=%d Y=%d Z=%d\r\n"
+                 " Gyro: X=%d Y=%d Z=%d\r\n"
+                 " Pitch=%.2f Roll=%.2f Yaw=%.2f\r\n",
                  ax, ay, az, gx, gy, gz, pitch, roll, yaw);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
 
@@ -208,6 +224,28 @@ void StartUARTTask(void *argument)
         {
             HAL_UART_Transmit(&huart2, (uint8_t*)recv_msg.message,
                               strlen(recv_msg.message), HAL_MAX_DELAY);
+        }
+    }
+}
+
+void StartMotorTask(void *argument)
+{
+    Motor_Init();
+    uint8_t cmd;
+    while (1)
+    {
+        if (xQueueReceive(motorQueueHandle, &cmd, portMAX_DELAY) == pdTRUE)
+        {
+        	uint16_t speed = Bluetooth_GetSpeed();
+            switch (cmd)
+            {
+                case 'F': Motor_Forward(speed); break;
+                case 'B': Motor_Backward(speed); break;
+                case 'L': Motor_Left(speed); break;
+                case 'R': Motor_Right(speed); break;
+                case 'S': Motor_Stop(); break;
+                default: break;
+            }
         }
     }
 }
