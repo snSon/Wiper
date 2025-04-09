@@ -49,7 +49,12 @@ typedef struct
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+#define LOG_MSG_MAX_LEN 64
 
+typedef struct
+{
+    char message[LOG_MSG_MAX_LEN];
+} LogMessage_t;
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
