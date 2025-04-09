@@ -50,7 +50,7 @@ extern uint8_t rx_data;
 osThreadId_t mpuTaskHandle;
 osThreadId_t dht11TaskHandle;
 osThreadId_t cdsTaskHandle;
-osMessageQueueId_t uartQueueHandle;
+osMessageQueueId_t uartQueueHandle; // 센서 전용
 QueueHandle_t motorQueueHandle; // 모터 명령 큐
 
 /* USER CODE END Variables */
@@ -76,7 +76,7 @@ const osThreadAttr_t cdsTask_attributes = {
 };
 
 const osMessageQueueAttr_t uartQueue_attributes = {
-		.name = "uartQueue"
+    .name = "uartQueue"
 };
 
 const osThreadAttr_t uartTask_attributes = {
@@ -84,12 +84,12 @@ const osThreadAttr_t uartTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+
 const osThreadAttr_t motorTask_attributes = {
   .name = "motorTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -109,14 +109,8 @@ void SensorLogPrinter(const char* msg)
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+void MX_FREERTOS_Init(void);
 
-void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
-
-/**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
 void MX_FREERTOS_Init(void) {
   /* 기본 초기화 */
   SetSensorLogCallback(SensorLogPrinter);
@@ -133,19 +127,11 @@ void MX_FREERTOS_Init(void) {
   cdsTaskHandle    = osThreadNew(StartCDSTask, NULL, &cdsTask_attributes);
   uartQueueHandle = osMessageQueueNew(8, sizeof(SensorMessage_t), &uartQueue_attributes);
   osThreadNew(StartUARTTask, NULL, &uartTask_attributes);
-   motorQueueHandle = xQueueCreate(8, sizeof(uint8_t)); // 모터 큐 생성
-   osThreadNew(StartMotorTask, NULL, &motorTask_attributes); // 모터 제어 Task 생성
-   Bluetooth_Init();  // BLE UART1 수신 시작
+  motorQueueHandle = xQueueCreate(8, sizeof(uint8_t)); // 모터 큐 생성
+  osThreadNew(StartMotorTask, NULL, &motorTask_attributes); // 모터 제어 Task 생성
+  Bluetooth_Init();  // BLE UART1 수신 시작
 }
 
-
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartDefaultTask */
 void StartMPUTask(void *argument)
 {
     while (1)
