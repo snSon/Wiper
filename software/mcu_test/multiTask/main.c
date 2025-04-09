@@ -1,4 +1,5 @@
 /* USER CODE BEGIN Header */
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -70,7 +71,6 @@ void Timer_Accuracy_Test() // 타이머 정확도 테스트
 
         char buf[64];
         sprintf(buf, "Timer count in 1s: %lu us\r\n", (after - before));
-        HAL_UART_Transmit(&huart1, (uint8_t*)buf, strlen(buf), HAL_MAX_DELAY);
         HAL_UART_Transmit(&huart2, (uint8_t*)buf, strlen(buf), HAL_MAX_DELAY);
     }
     HAL_TIM_Base_Stop(&htim2);
@@ -115,10 +115,11 @@ int main(void)
   MX_ADC1_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
   // 타이머 정확도 테스트 실행
-  // Timer_Accuracy_Test()
+  Timer_Accuracy_Test();
 
   /* USER CODE END 2 */
 
@@ -188,11 +189,15 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART2)
-    {
-        // HAL_UART_Transmit(&huart2, &rx_data, 1, HAL_MAX_DELAY);  // 받은 데이터 다시 전송 (에코)
-        HAL_UART_Receive_IT(&huart2, &rx_data, 1);               // 다시 수신 대기
-    }
+	if (huart->Instance == USART1)  // 블루투스(UART1) 수신일 때만 콜백 호출
+	{
+		HAL_UART_Transmit(&huart2, (uint8_t*)"BLE RX\n", 7, HAL_MAX_DELAY);  // 로그 찍어보기
+		Bluetooth_RxCallback();  // BLE 명령 처리
+	}
+	else if (huart->Instance == USART2)
+	{
+		HAL_UART_Receive_IT(&huart2, &rx_data, 1);  // PC 로그용 UART2 다시 수신 대기
+	}
 }
 
 /* USER CODE END 4 */
