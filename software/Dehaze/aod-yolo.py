@@ -1,46 +1,83 @@
-# aod_yolo_main.py
-import cv2
 import torch
+import cv2
+import time
+import os
 import numpy as np
-from aod_net import AODNet
+from net import AODNet
 
-# Load AOD-Net
 aod_model = AODNet().cuda().eval()
-aod_model.load_state_dict(torch.load("aod_net.pth"))
+checkpoint = torch.load("dehazer.pth")
+new_checkpoint = {"aod_block." + k: v for k, v in checkpoint.items()}
+aod_model.load_state_dict(new_checkpoint)
+# YOLOv5 모델 로드 (속도 원하면 yolov5n) cuda:0
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s', device='cuda:0', force_reload=True)
 
-# Load YOLOv5
-yolo_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-yolo_model.cuda().eval()
+# Jetson CSI + GStreamer 파이프라인 
+gst_pipeline = (
+    "nvarguscamerasrc ! "
+    "video/x-raw(memory:NVMM), width=640, height=480, format=NV12, framerate=10/1 ! "
+    "nvvidconv flip-method=2 ! "
+    "video/x-raw, format=BGRx ! "
+    "videoconvert ! "
+    "video/x-raw, format=BGR ! appsink drop=1"
+)
 
-# 디헤이징 함수
 def dehaze_frame(frame):
-    img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    img = torch.from_numpy(img).float().permute(2, 0, 1).unsqueeze(0).cuda() / 255.0
+    img = torch.from_numpy(frame).float().permute(2,0,1).unsqueeze(0).cuda() / 255.0
     with torch.no_grad():
-        output = aod_model(img)
-    out_img = output.squeeze().permute(1, 2, 0).cpu().numpy()
-    out_img = (np.clip(out_img, 0, 1) * 255).astype('uint8')
+         output = aod_model(img)
+    out_img = output.squeeze().permute(1,2,0).cpu().numpy()
+    out_img = (np.clip(out_img, 0 , 1)*255).astype('uint8')
     return cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
+# 카메라 연결
+cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
-# 비디오 스트림 시작
-#cap = cv2.VideoCapture(0)  #  CSI 카메라는 'nvarguscamerasrc' 사용 가능
+if not cap.isOpened():
+    print("❌ Failed to open CSI camera")
+    exit()
 
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
+print("✅ CSI camera opened. Starting YOLOv5 inference...")
 
-    # AOD-Net 디헤이징
-    dehazed = dehaze_frame(frame)
+frame_count = 0
+start_time = time.time()
 
-    # YOLOv5 객체 감지
-    results = yolo_model(dehazed)
-    results.render()
+try:
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("⚠️ Frame read failed.")
+            break
+        frame_count += 1
+        elapsed_time = time.time() - start_time
+        if elapsed_time >= 1.0:
+            fps=frame_count / elapsed_time
+            print(f"FPS: {fps:.2f}")
+            frame_count = 0
+            start_time = time.time()
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        start = time.time()
+        dehazed = dehaze_frame(rgb)
+        results = model(dehazed, size=640)
+        end = time.time()
+	
+        fps = 1.0 / (end - start)
+        # print(f"🧠 {len(results.pandas().xyxy[0])} objects | {fps:.2f} FPS")
 
-    # 결과 시각화
-    cv2.imshow("AOD + YOLOv5", results.ims[0])
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # 결과 시각화 후 저장
+        rendered = results.render()[0]
+        
+        # 화면에 보여주기
+        cv2.imshow("YOLOv5 CSI Preview", rendered)
 
-cap.release()
-cv2.destroyAllWindows()
+        # ESC or Q로 종료
+        key = cv2.waitKey(1) & 0xFF
+        if key == 27 or key == ord('q'):
+            break
+
+except KeyboardInterrupt:
+    print("🛑 Interrupted by user.")
+
+finally:
+    cap.release()
+    cv2.destroyAllWindows()
+    print("📷 CSI camera released.")
