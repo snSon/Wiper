@@ -4,7 +4,9 @@
 #include "usart.h"
 #include <stdio.h>
 #include <string.h>
-
+/* USER CODE BEGIN Includes */
+#include "ultrasonic.h"
+/* USER CODE END Includes */
 extern TIM_HandleTypeDef htim1;
 extern UART_HandleTypeDef huart2;
 
@@ -39,7 +41,21 @@ int main(void) {
     MX_TIM1_Init();
 
     HAL_TIM_Base_Start(&htim1);
-
+    /* USER CODE BEGIN 1 */
+    HAL_Init();
+    SystemClock_Config();
+    MX_GPIO_Init();
+    MX_USART2_UART_Init();
+    MX_TIM1_Init();
+    
+    HAL_TIM_Base_Start(&htim1);
+    
+    xTaskCreate(UltrasonicTask1, "Ultra1", 128, NULL, 1, NULL);
+    xTaskCreate(UltrasonicTask2, "Ultra2", 128, NULL, 1, NULL);
+    xTaskCreate(UltrasonicTask3, "Ultra3", 128, NULL, 1, NULL);
+    
+    vTaskStartScheduler();
+    /* USER CODE END 1 */
     char msg[64];
 
     while (1) {
