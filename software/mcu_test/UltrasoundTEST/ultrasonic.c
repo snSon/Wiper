@@ -6,12 +6,12 @@
 #include <string.h>
 #include "cmsis_os.h"
 
-extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim4;
 extern UART_HandleTypeDef huart2;
 
 void delay_us(uint16_t us) {
-    __HAL_TIM_SET_COUNTER(&htim1, 0);
-    while (__HAL_TIM_GET_COUNTER(&htim1) < us);
+    __HAL_TIM_SET_COUNTER(&htim4, 0);
+    while (__HAL_TIM_GET_COUNTER(&htim14) < us);
 }
 
 uint32_t read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
@@ -26,13 +26,13 @@ uint32_t read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
     while (HAL_GPIO_ReadPin(echoPort, echoPin) == GPIO_PIN_RESET && timeout--);
     if (timeout == 0) return 0;
 
-    uint32_t start = __HAL_TIM_GET_COUNTER(&htim1);
+    uint32_t start = __HAL_TIM_GET_COUNTER(&htim4);
 
     timeout = 100000;
     while (HAL_GPIO_ReadPin(echoPort, echoPin) == GPIO_PIN_SET && timeout--);
     if (timeout == 0) return 0;
 
-    uint32_t end = __HAL_TIM_GET_COUNTER(&htim1);
+    uint32_t end = __HAL_TIM_GET_COUNTER(&htim4);
     uint32_t duration = (end >= start) ? (end - start) : (0xFFFF - start + end);
     uint32_t distance_cm = duration * 0.034 / 2;
 
