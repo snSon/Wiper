@@ -7,12 +7,12 @@
 /* USER CODE BEGIN Includes */
 #include "ultrasonic.h"
 /* USER CODE END Includes */
-extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim4;
 extern UART_HandleTypeDef huart2;
 
 void delay_us(uint16_t us) {
-    __HAL_TIM_SET_COUNTER(&htim1, 0);
-    while (__HAL_TIM_GET_COUNTER(&htim1) < us);
+    __HAL_TIM_SET_COUNTER(&htim4, 0);
+    while (__HAL_TIM_GET_COUNTER(&htim4) < us);
 }
 
 uint32_t read_ultrasonic_distance_cm(void) {
@@ -40,7 +40,7 @@ int main(void) {
     MX_USART2_UART_Init();
     MX_TIM1_Init();
 
-    HAL_TIM_Base_Start(&htim1);
+    HAL_TIM_Base_Start(&htim4);
     /* USER CODE BEGIN 1 */
     HAL_Init();
     SystemClock_Config();
@@ -48,7 +48,7 @@ int main(void) {
     MX_USART2_UART_Init();
     MX_TIM1_Init();
     
-    HAL_TIM_Base_Start(&htim1);
+    HAL_TIM_Base_Start(&htim4);
     
     xTaskCreate(UltrasonicTask1, "Ultra1", 128, NULL, 1, NULL);
     xTaskCreate(UltrasonicTask2, "Ultra2", 128, NULL, 1, NULL);
