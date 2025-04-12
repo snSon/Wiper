@@ -30,7 +30,8 @@ void Motor_Init(void)
 }
 
 // 내부 함수: 방향 설정
-static void SetMotorDirection(GPIO_PinState in1, GPIO_PinState in2, GPIO_PinState in3, GPIO_PinState in4)
+static void SetMotorDirection
+(GPIO_PinState in1, GPIO_PinState in2, GPIO_PinState in3, GPIO_PinState in4)
 {
     HAL_GPIO_WritePin(IN1_PORT, IN1_PIN, in1);
     HAL_GPIO_WritePin(IN2_PORT, IN2_PIN, in2);
