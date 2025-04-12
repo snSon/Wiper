@@ -6,8 +6,10 @@
 <h2>
  사용 보드 및 센서 
 </h2>
- MCU : STM32 F446RE <br>
- Jetson : Jetson Orin Nano <br>
- CSI Camer : IMX-219 <br>
+ <ul>
+   <li>MCU : STM32 F446RE
+   <li>Jetson : Jetson Orin Nano
+   <li>CSI Camer : IMX-219
+ </ul> <br>
  
  ---
