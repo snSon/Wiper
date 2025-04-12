@@ -43,7 +43,7 @@ uint32_t read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
 void UltrasonicTask1(void *argument) {
     char msg[64];
     for (;;) {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOA, GPIO_PIN_9, GPIOA, GPIO_PIN_1);
+        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
         snprintf(msg, sizeof(msg), "Sensor1: %lu cm\r\n", d);
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -53,9 +53,8 @@ void UltrasonicTask1(void *argument) {
 void UltrasonicTask2(void *argument) {
     char msg[64];
     for (;;) {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOB, GPIO_PIN_1);
+        uint32_t d = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
         snprintf(msg, sizeof(msg), "Sensor2: %lu cm\r\n", d);
-        vTaskDelay(pdMS_TO_TICKS(10)); // 딜레이
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -64,7 +63,7 @@ void UltrasonicTask2(void *argument) {
 void UltrasonicTask3(void *argument) {
     char msg[64];
     for (;;) {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_8);
+        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOA, GPIO_PIN_6);
         snprintf(msg, sizeof(msg), "Sensor3: %lu cm\r\n", d);
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
         vTaskDelay(pdMS_TO_TICKS(1000));
