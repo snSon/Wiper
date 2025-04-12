@@ -63,7 +63,7 @@ void UltrasonicTask2(void *argument) {
 void UltrasonicTask3(void *argument) {
     char msg[64];
     for (;;) {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOA, GPIO_PIN_6);
+        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
         snprintf(msg, sizeof(msg), "Sensor3: %lu cm\r\n", d);
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
         vTaskDelay(pdMS_TO_TICKS(1000));
