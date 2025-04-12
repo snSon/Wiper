@@ -63,11 +63,11 @@ const osThreadAttr_t mpuTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
-const osThreadAttr_t dht11Task_attributes = {
-  .name = "dht11Task",
-  .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
+//const osThreadAttr_t dht11Task_attributes = {
+//  .name = "dht11Task",
+//  .stack_size = 512 * 4,
+//  .priority = (osPriority_t) osPriorityNormal,
+//};
 
 const osThreadAttr_t cdsTask_attributes = {
   .name = "cdsTask",
@@ -94,7 +94,7 @@ const osThreadAttr_t motorTask_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void StartMPUTask(void *argument);
-void StartDHT11Task(void *argument);
+// void StartDHT11Task(void *argument);
 void StartCDSTask(void *argument);
 void StartUARTTask(void *argument);
 void StartMotorTask(void *argument);
@@ -111,7 +111,8 @@ void SensorLogPrinter(const char* msg)
 void StartDefaultTask(void *argument);
 void MX_FREERTOS_Init(void);
 
-void MX_FREERTOS_Init(void) {
+void MX_FREERTOS_Init(void)
+{
   /* 기본 초기화 */
   SetSensorLogCallback(SensorLogPrinter);
   Sensors_Init();
@@ -123,7 +124,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Task 생성 */
   mpuTaskHandle    = osThreadNew(StartMPUTask, NULL, &mpuTask_attributes);
-  dht11TaskHandle  = osThreadNew(StartDHT11Task, NULL, &dht11Task_attributes);
+  // dht11TaskHandle  = osThreadNew(StartDHT11Task, NULL, &dht11Task_attributes);
   cdsTaskHandle    = osThreadNew(StartCDSTask, NULL, &cdsTask_attributes);
   uartQueueHandle = osMessageQueueNew(8, sizeof(SensorMessage_t), &uartQueue_attributes);
   osThreadNew(StartUARTTask, NULL, &uartTask_attributes);
@@ -163,28 +164,28 @@ void StartMPUTask(void *argument)
     }
 }
 
-void StartDHT11Task(void *argument)
-{
-    uint8_t temp = 0, humi = 0;
-    while (1)
-    {
-        SensorMessage_t msg_out;
-        uint8_t ok = ReadDHT11(&temp, &humi);
-        if (ok)
-        {
-            snprintf(msg_out.message, sizeof(msg_out.message),
-                     "[DHT11] Temp: %d°C, Humi: %d%%\r\n", temp, humi);
-        }
-        else
-        {
-            snprintf(msg_out.message, sizeof(msg_out.message),
-                     "[DHT11] Read Fail\r\n");
-        }
-        osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-
-        osDelay(2000);
-    }
-}
+//void StartDHT11Task(void *argument)
+//{
+//    uint8_t temp = 0, humi = 0;
+//    while (1)
+//    {
+//        SensorMessage_t msg_out;
+//        uint8_t ok = ReadDHT11(&temp, &humi);
+//        if (ok)
+//        {
+//            snprintf(msg_out.message, sizeof(msg_out.message),
+//                     "[DHT11] Temp: %d°C, Humi: %d%%\r\n", temp, humi);
+//        }
+//        else
+//        {
+//            snprintf(msg_out.message, sizeof(msg_out.message),
+//                     "[DHT11] Read Fail\r\n");
+//        }
+//        osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
+//
+//        osDelay(2000);
+//    }
+//}
 
 void StartCDSTask(void *argument)
 {
