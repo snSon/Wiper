@@ -26,6 +26,7 @@
 
 extern TIM_HandleTypeDef htim4;   // TIM4 핸들
 extern UART_HandleTypeDef huart2; // UART2 핸들
+extern uint8_t current_motor_cmd;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,7 +45,7 @@ extern UART_HandleTypeDef huart2; // UART2 핸들
 /* USER CODE BEGIN Variables */
 // ---- 기존 센서/모터 관련 태스크 핸들 ----
 osThreadId_t mpuTaskHandle;
-osThreadId_t dht11TaskHandle;  // 사용한다면
+// osThreadId_t dht11TaskHandle;
 osThreadId_t cdsTaskHandle;
 osMessageQueueId_t uartQueueHandle; // 센서 로그 전용
 QueueHandle_t motorQueueHandle;     // 모터 명령 큐
@@ -304,6 +305,8 @@ void StartUARTTask(void *argument)
   * @retval None
   */
 /* USER CODE END Header_StartMotorTask */
+
+uint8_t current_motor_cmd = 'S'; // 초기 정지 상태
 void StartMotorTask(void *argument)
 {
   Motor_Init();
@@ -312,8 +315,9 @@ void StartMotorTask(void *argument)
   {
     if (xQueueReceive(motorQueueHandle, &cmd, portMAX_DELAY) == pdTRUE)
     {
+      current_motor_cmd = cmd;
       uint16_t speed = Bluetooth_GetSpeed();
-      switch (cmd)
+      switch (current_motor_cmd)
       {
         case 'F': Motor_Forward(speed); break;
         case 'B': Motor_Backward(speed); break;
@@ -325,17 +329,6 @@ void StartMotorTask(void *argument)
     }
   }
 }
-
-/* USER CODE BEGIN Header_UltrasonicTasks */
-/**
-  * @brief  초음파 태스크 (ultrasonic.c에 구현된 함수들)
-  * @note   UltrasonicTask1,2,3는 각각 초음파 센서 핀 다르게 설정
-  *         1초 간격 vTaskDelay(1000)로 거리 측정 후 UART2로 출력
-  */
-/* USER CODE END Header_UltrasonicTasks */
-
-// UltrasonicTask1,2,3 함수는 ultrasonic.c에 구현되어 있다고 가정.
-// 여기서는 extern 선언만 해줘도 됨. (이미 #include "ultrasonic.h"에 있으므로 생략)
 
 /* USER CODE BEGIN Application */
 /* USER CODE END Application */
