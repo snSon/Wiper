@@ -19,146 +19,85 @@ static char rx_buffer[RX_BUFFER_SIZE];
 static uint8_t rx_index = 0;
 static uint8_t rx_byte;
 
-static uint16_t global_motor_speed = 400;  // 기본 속도
+static uint16_t global_motor_speed = 800;  // 기본 속도
 
 void Bluetooth_Init(void)
 {
     HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
 }
 
-//void Bluetooth_RxCallback(void)
-//{
-//    // rx_byte가 32~126(가시문자) 범위일 때만 버퍼에 쌓는다.
-//    // 나머지(\n,\r 등)는 무시.
-//    if (rx_byte >= 32 && rx_byte <= 126)
-//    {
-//        rx_buffer[rx_index++] = rx_byte;
-//
-//        // 4글자 받으면 바로 파싱
-//        if (rx_index == 4)
-//        {
-//            // 문자열 끝에 널문자 추가
-//            rx_buffer[4] = '\0';
-//
-//            // 디버그 출력 (원하면 생략 가능)
-//            HAL_UART_Transmit(&huart2, (uint8_t*)"RX BUFFER (4 chars): ", 21, HAL_MAX_DELAY);
-//            HAL_UART_Transmit(&huart2, (uint8_t*)rx_buffer, 4, HAL_MAX_DELAY);
-//            HAL_UART_Transmit(&huart2, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);
-//
-//            // 명령어 파싱
-//            Parse_Command(rx_buffer);
-//
-//            // 버퍼를 깨끗이 지우고 인덱스 0으로 되돌림
-//            memset(rx_buffer, 0, RX_BUFFER_SIZE);
-//            rx_index = 0;
-//        }
-//        // 만약 4글자를 초과로 입력해버리면 (rx_index==5~64) 무시되거나
-//        // 뒤섞일 수 있으니, 가급적 앱에서 '정확히 4글자'씩만 전송하는 게 중요.
-//    }
-//
-//    // 다음 바이트 수신 준비 (이 콜백 맨 끝에서 항상 필요)
-//    HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
-//}
-
 void Bluetooth_RxCallback(void)
 {
-    // 만약 수신된 바이트가 개행 문자('\n' 또는 '\r')라면,
-    // 지금까지 받은 문자열을 파싱한다.
-    if (rx_byte == '\n' || rx_byte == '\r')
+    if (rx_byte >= 32 && rx_byte <= 126)  // 유효한 문자
     {
-        // 문자열 끝에 널 문자 붙여서 C-스트링 완성
-        rx_buffer[rx_index] = '\0';
-
-        // 버퍼에 뭔가 들어있다면 파싱
-        if (rx_index > 0)
-        {
-            Parse_Command(rx_buffer);
-        }
-
-        // 버퍼 비우기
-        memset(rx_buffer, 0, RX_BUFFER_SIZE);
-        rx_index = 0;
-    }
-    // 가시 문자(스페이스(32)~'~'(126))라면 버퍼에 쌓는다.
-    else if (rx_byte >= 32 && rx_byte <= 126)
-    {
-        // 버퍼 오버플로우 방지
-        if (rx_index < RX_BUFFER_SIZE - 1)
-        {
-            rx_buffer[rx_index++] = rx_byte;
-        }
-        else
-        {
-            // 버퍼 초과 시 그냥 초기화
-            rx_index = 0;
-            memset(rx_buffer, 0, RX_BUFFER_SIZE);
-        }
+        char command[2] = {0};
+        command[0] = tolower((char)rx_byte);
+        Parse_Command(command);  // 단일 문자로 파싱
     }
 
-    // 다음 바이트 수신 대기
+    // 다음 수신 대기
     HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
 }
 
 
+
 void Parse_Command(const char* cmd)
 {
-    char command[RX_BUFFER_SIZE];
-    strncpy(command, cmd, RX_BUFFER_SIZE);
-    for (int i = 0; command[i]; i++)
-        command[i] = tolower((unsigned char)command[i]);
+    char c = cmd[0];
+    uint8_t msg;
 
-    if (strcmp(command, "gogo") == 0)
+    switch (c)
     {
-        uint8_t msg = 'F';
-        xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-        return;
-    }
-    else if (strcmp(command, "back") == 0)
-    {
-        uint8_t msg = 'B';
-        xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-        return;
-    }
-    else if (strcmp(command, "left") == 0)
-    {
-        uint8_t msg = 'L';
-        xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-        return;
-    }
-    else if (strcmp(command, "righ") == 0)
-    {
-        uint8_t msg = 'R';
-        xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-        return;
-    }
-    else if (strcmp(command, "stop") == 0)
-    {
-        uint8_t msg = 'S';
-        xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-        return;
-    }
-    else if (strcmp(command, "slow") == 0)
-    {
-        global_motor_speed = 100;
-    }
-    else if (strcmp(command, "norm") == 0)
-    {
-        global_motor_speed = 400;
-    }
-    else if (strcmp(command, "high") == 0)
-    {
-        global_motor_speed = 800;
-    }
-    else
-    {
-        const char* err = "Unknown Command\r\n";
-        HAL_UART_Transmit(&huart2, (uint8_t*)err, strlen(err), HAL_MAX_DELAY);
-        return;
+    case 'f':
+           msg = 'F';
+           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
+           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Forward\r\n", 18, HAL_MAX_DELAY);
+           break;
+       case 'b':
+           msg = 'B';
+           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
+           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Backward\r\n", 19, HAL_MAX_DELAY);
+           break;
+       case 'l':
+           msg = 'L';
+           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
+           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Left\r\n", 16, HAL_MAX_DELAY);
+           break;
+       case 'r':
+           msg = 'R';
+           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
+           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Right\r\n", 17, HAL_MAX_DELAY);
+           break;
+       case 's':
+           msg = 'S';
+           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
+           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Stop\r\n", 16, HAL_MAX_DELAY);
+           break;
+        case 'a':
+            global_motor_speed = 800;
+            break;
+        case 'e':
+            global_motor_speed = 900;
+            break;
+        case 'i':
+            global_motor_speed = 1000;
+            break;
+        default:
+        {
+            char err_msg[64];
+            snprintf(err_msg, sizeof(err_msg), "[BLE_ERROR] '%s' was not defined\r\n", cmd);
+            HAL_UART_Transmit(&huart2, (uint8_t*)err_msg, strlen(err_msg), HAL_MAX_DELAY);
+            return;
+        }
     }
 
-    char ok_msg[64];
-	snprintf(ok_msg, sizeof(ok_msg), "Speed set: %d (CMD: %s)\r\n", global_motor_speed, command);
-	HAL_UART_Transmit(&huart2, (uint8_t*)ok_msg, strlen(ok_msg), HAL_MAX_DELAY);
+    // 속도 설정 메시지 출력 (속도 명령어일 때만)
+    if (c == 'a' || c == 'e' || c == 'i')
+    {
+        char ok_msg[64];
+        snprintf(ok_msg, sizeof(ok_msg), "[BLE] Speed set: %d (CMD: %c)\r\n", global_motor_speed, c);
+        HAL_UART_Transmit(&huart2, (uint8_t*)ok_msg, strlen(ok_msg), HAL_MAX_DELAY);
+    }
 }
 
 
