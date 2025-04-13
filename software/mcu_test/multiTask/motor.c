@@ -26,6 +26,7 @@ void Motor_Init(void)
     HAL_TIM_PWM_Start(&LEFT_PWM_TIMER, LEFT_PWM_CHANNEL);
     HAL_TIM_PWM_Start(&RIGHT_PWM_TIMER, RIGHT_PWM_CHANNEL);
 
+    __HAL_TIM_MOE_ENABLE(&htim1);
     Motor_Stop();
 }
 
@@ -89,7 +90,7 @@ void Motor_Accelerate(uint16_t target_speed, uint16_t step_delay_ms)
 {
     while (current_speed < target_speed)
     {
-        current_speed += 10;
+        current_speed += 100;
         if (current_speed > target_speed) current_speed = target_speed;
         SetMotorSpeed(current_speed, current_speed);
         osDelay(step_delay_ms);
@@ -101,7 +102,7 @@ void Motor_Decelerate(uint16_t step_delay_ms)
 {
     while (current_speed > 0)
     {
-        current_speed -= 10;
+        current_speed -= 100;
         SetMotorSpeed(current_speed, current_speed);
         osDelay(step_delay_ms);
     }
