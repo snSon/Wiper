@@ -13,7 +13,7 @@ aod_model.load_state_dict(new_checkpoint)
 aod_model.eval()
 
 # pruning 적용 및 mask 제거
-prune_model(aod_model, amount=0.3)
+prune_model(aod_model, amount=0.3) # 전체 가중치의 30% 가지치기
 remove_pruning(aod_model)
 
 # YOLOv5 모델 로드 (속도 원하면 yolov5n) cuda:0
