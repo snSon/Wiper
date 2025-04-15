@@ -67,13 +67,10 @@ try:
 
         # 시각화 (원 그리기)
             cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)
-
-        # 클래스 이름 표시
-            label = f'{model.names[int(cls)]} ({cx}, {cy})'
-            cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+==
 
         # 콘솔 출력
-            print(f'클래스: {model.names[int(cls)]}, 중심 좌표: ({cx}, {cy})')
+            print(f'클래스: {model.names[int(cls)]}, 중심 좌표: ({cx}, {cy}), top_left: ({x1}, {y1})  bottom_right({x2}, {y2})')
 
         # 결과 시각화 후 저장
         rendered = results.render()[0]
