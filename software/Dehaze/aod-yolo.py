@@ -16,6 +16,9 @@ aod_model.eval()
 prune_model(aod_model, amount=0.3)
 remove_pruning(aod_model)
 
+# YOLOv5 모델 로드 (속도 원하면 yolov5n) cuda:0
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s', device='cuda:0', force_reload=True)
+
 # Jetson CSI + GStreamer 파이프라인 
 gst_pipeline = (
     "nvarguscamerasrc ! "
