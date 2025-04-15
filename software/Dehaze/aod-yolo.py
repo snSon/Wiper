@@ -3,14 +3,18 @@ import cv2
 import time
 import os
 import numpy as np
-from net import AODNet
+from aod-net import AODNet, prune_model, remove_pruning
 
-aod_model = AODNet().cuda().eval()
+### 🔁 모델 로드 및 Pruning ###
+aod_model = AODNet().cuda()
 checkpoint = torch.load("dehazer.pth")
 new_checkpoint = {"aod_block." + k: v for k, v in checkpoint.items()}
 aod_model.load_state_dict(new_checkpoint)
-# YOLOv5 모델 로드 (속도 원하면 yolov5n) cuda:0
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', device='cuda:0', force_reload=True)
+aod_model.eval()
+
+# pruning 적용 및 mask 제거
+prune_model(aod_model, amount=0.3)
+remove_pruning(aod_model)
 
 # Jetson CSI + GStreamer 파이프라인 
 gst_pipeline = (

@@ -1,6 +1,7 @@
 import torch  # PyTorch 라이브러리
 import torch.nn as nn  # 신경망 모듈 
 import math
+import torch.nn.utils.prune as prune
 
 class dehaze_net(nn.Module):
     """이미지 디헤이징(안개 제거) 네트워크 정의"""
@@ -45,3 +46,13 @@ class AODNet(nn.Module):
                
         def forward(self, x):
                return self.aod_block(x)
+            
+def prune_model(model, amount=0.3):
+    for _, module in model.named_modules():
+        if isinstance(module, nn.Conv2d):
+            prune.l1_unstructured(module, name="weight", amount=amount)
+
+def remove_pruning(model):
+    for _, module in model.named_modules():
+        if isinstance(module, nn.Conv2d):
+            prune.remove(module, "weight")
