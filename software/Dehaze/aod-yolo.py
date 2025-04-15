@@ -54,21 +54,26 @@ try:
         if not ret:
             print("⚠️ Frame read failed.")
             break
-        frame_count += 1
-        elapsed_time = time.time() - start_time
-        if elapsed_time >= 1.0:
-            fps=frame_count / elapsed_time
-            print(f"FPS: {fps:.2f}")
-            frame_count = 0
-            start_time = time.time()
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        start = time.time()
         dehazed = dehaze_frame(rgb)
         results = model(dehazed, size=640)
-        end = time.time()
-	
-        fps = 1.0 / (end - start)
-        # print(f"🧠 {len(results.pandas().xyxy[0])} objects | {fps:.2f} FPS")
+
+	predictions = results.pred[0]
+
+	for *box, conf, cls in predictions:
+            x1, y1, x2, y2 = map(int, box)
+            cx = int((x1 + x2) / 2)
+            cy = int((y1 + y2) / 2)
+
+        # 시각화 (원 그리기)
+            cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)
+
+        # 클래스 이름 표시
+            label = f'{model.names[int(cls)]} ({cx}, {cy})'
+            cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+
+        # 콘솔 출력
+            print(f'클래스: {model.names[int(cls)]}, 중심 좌표: ({cx}, {cy})')
 
         # 결과 시각화 후 저장
         rendered = results.render()[0]
