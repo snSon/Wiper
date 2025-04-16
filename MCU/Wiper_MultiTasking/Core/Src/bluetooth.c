@@ -21,7 +21,7 @@ static char rx_buffer[RX_BUFFER_SIZE];
 static uint8_t rx_index = 0;
 static uint8_t rx_byte;
 
-static uint16_t global_motor_speed = 450;  // 기본 속도
+static uint16_t global_motor_speed = 800;  // 기본 속도 (450 ->800)
 
 void Bluetooth_Init(void)
 {
@@ -80,13 +80,13 @@ void Parse_Command(const char* cmd)
            HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Stop\r\n", 16, HAL_MAX_DELAY);
            break;
         case 'a':
-            global_motor_speed = 200;
+            global_motor_speed = 800; // 200
             break;
         case 'e':
-            global_motor_speed = 450;
+            global_motor_speed = 900; // 450
             break;
         case 'i':
-            global_motor_speed = 600;
+            global_motor_speed = 1000; // 600
             break;
         default:
         {
