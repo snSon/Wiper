@@ -59,7 +59,6 @@ osThreadId_t ultrasonicTask2Handle;
 osThreadId_t ultrasonicTask3Handle;
 
 osThreadId_t spiTaskHandle;
-
 /* USER CODE END Variables */
 
 /* Definitions for defaultTask */
@@ -84,7 +83,7 @@ const osThreadAttr_t cdsTask_attributes = {
 const osThreadAttr_t uartTask_attributes = {
   .name = "uartTask",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 
 /* MotorTask 속성 */
@@ -114,11 +113,10 @@ const osThreadAttr_t ultrasonicTask3_attributes = {
 };
 
 const osThreadAttr_t spiTask_attributes = {
-  .name = "spiTask",
+  .name = "ultrasonicTask2",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-
 /* USER CODE END RTOS_THREADS */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -130,7 +128,7 @@ void StartMPUTask(void *argument);
 void StartCDSTask(void *argument);
 void StartUARTTask(void *argument);
 void StartMotorTask(void *argument);
-void StartSPITask(void *argument);
+void StartSPITask(void* argument);
 
 // 센서 로그 콜백 함수
 void SensorLogPrinter(const char* msg)
@@ -189,7 +187,6 @@ void MX_FREERTOS_Init(void)
   ultrasonicTask3Handle = osThreadNew(UltrasonicTask3, NULL, &ultrasonicTask3_attributes);
 
   spiTaskHandle = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
-
   /* USER CODE END init */
 }
 
@@ -362,7 +359,6 @@ void StartSPITask(void *argument)
         osDelay(1);  // 1ms 주기 (또는 원하시는 주기로 조절)
     }
 }
-
 
 /* USER CODE END 1 */
 /* USER CODE BEGIN Application */
