@@ -36,6 +36,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+// 512 -> 128
 typedef struct
 {
 	char message[128];
