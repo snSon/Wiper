@@ -3,7 +3,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os2.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "i2c.h"
 #include "spi.h"
@@ -61,20 +61,8 @@ void SPI1_Start_Receive_IT()
 }
 void StartDefaultTask(void const * argument)
 {
-  printf("SPI Task 시작됨\r\n");  // 이게 떠야 UART2 OK
-
   for(;;)
   {
-	uint8_t rx_val = 0;
-	uint8_t tx_val = 0x5A;
-    if (HAL_SPI_TransmitReceive(&hspi1, &tx_val ,&rx_val, 1, HAL_MAX_DELAY) == HAL_OK)
-    {
-        printf("SPI 수신: 0x%02X, 응답 전송: 0x%02X\r\n", rx_val, tx_val);
-    }
-    else
-    {
-        printf("SPI 수신 실패\r\n");
-    }
 
     osDelay(1);
   }
@@ -126,6 +114,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_SPI1_Init();
   MX_TIM1_Init();
   MX_USART2_UART_Init();
   MX_TIM2_Init();
@@ -134,7 +123,6 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   // 타이머 정확도 테스트 실행
