@@ -38,7 +38,7 @@ extern "C" {
 /* USER CODE BEGIN ET */
 typedef struct
 {
-	char message[512];
+	char message[128];
 } SensorMessage_t;
 /* USER CODE END ET */
 
