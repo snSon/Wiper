@@ -3,7 +3,7 @@ import cv2
 import time
 import os
 import numpy as np
-from aod-net import AODNet, prune_model, remove_pruning
+from aod_net import AODNet, prune_model, remove_pruning
 
 ### 🔁 모델 로드 및 Pruning ###
 aod_model = AODNet().cuda()
