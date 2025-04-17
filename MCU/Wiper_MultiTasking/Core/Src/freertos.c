@@ -13,11 +13,12 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include <string.h>
-#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <string.h>
+#include <stdio.h>
+
 #include "mpu6050.h"
 #include "motor.h"
 #include "queue.h"
@@ -25,6 +26,7 @@
 #include "ultrasonic.h"  // 초음파 헤더 추가
 #include "cds.h"
 #include "dht.h"
+#include "spi.h"
 
 extern TIM_HandleTypeDef htim4;   // TIM4 핸들
 extern UART_HandleTypeDef huart2; // UART2 핸들
@@ -55,6 +57,9 @@ QueueHandle_t motorQueueHandle;     // 모터 명령 큐
 osThreadId_t ultrasonicTask1Handle;
 osThreadId_t ultrasonicTask2Handle;
 osThreadId_t ultrasonicTask3Handle;
+
+osThreadId_t spiTaskHandle;
+
 /* USER CODE END Variables */
 
 /* Definitions for defaultTask */
@@ -107,6 +112,13 @@ const osThreadAttr_t ultrasonicTask3_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+
+const osThreadAttr_t spiTask_attributes = {
+  .name = "spiTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
 /* USER CODE END RTOS_THREADS */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -118,6 +130,7 @@ void StartMPUTask(void *argument);
 void StartCDSTask(void *argument);
 void StartUARTTask(void *argument);
 void StartMotorTask(void *argument);
+void StartSPITask(void *argument);
 
 // 센서 로그 콜백 함수
 void SensorLogPrinter(const char* msg)
@@ -174,6 +187,9 @@ void MX_FREERTOS_Init(void)
   ultrasonicTask1Handle = osThreadNew(UltrasonicTask1, NULL, &ultrasonicTask1_attributes);
   ultrasonicTask2Handle = osThreadNew(UltrasonicTask2, NULL, &ultrasonicTask2_attributes);
   ultrasonicTask3Handle = osThreadNew(UltrasonicTask3, NULL, &ultrasonicTask3_attributes);
+
+  spiTaskHandle = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
+
   /* USER CODE END init */
 }
 
@@ -324,6 +340,29 @@ void UltrasonicTask3(void *argument)
         osDelay(1000);
     }
 }
+
+void StartSPITask(void *argument)
+{
+    uint8_t rx_val = 0;
+    uint8_t tx_val = 0x5A;
+    char msg[64];
+
+    for(;;)
+    {
+        if (HAL_SPI_TransmitReceive(&hspi1, &tx_val ,&rx_val, 1, HAL_MAX_DELAY) == HAL_OK)
+        {
+            snprintf(msg, sizeof(msg), "[SPI] 수신: 0x%02X, 응답: 0x%02X\r\n", rx_val, tx_val);
+        }
+        else
+        {
+            snprintf(msg, sizeof(msg), "[SPI] 통신 실패\r\n");
+        }
+
+        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+        osDelay(1);  // 1ms 주기 (또는 원하시는 주기로 조절)
+    }
+}
+
 
 /* USER CODE END 1 */
 /* USER CODE BEGIN Application */

@@ -95,7 +95,7 @@ PA1.Signal=UART4_RX
 PA10.Mode=Asynchronous
 PA10.Signal=USART1_RX
 PA15.Locked=true
-PA15.Signal=GPIO_Input
+PA15.Signal=SPI1_NSS
 PA2.Locked=true
 PA2.Mode=Asynchronous
 PA2.Signal=USART2_TX
@@ -181,11 +181,7 @@ ProjectManager.ToolChainLocation=
 ProjectManager.UAScriptAfterPath=
 ProjectManager.UAScriptBeforePath=
 ProjectManager.UnderRoot=true
-<<<<<<< HEAD
-ProjectManager.functionlistsort=1-SystemClock_Config-RCC-false-HAL-false,2-MX_GPIO_Init-GPIO-false-HAL-true,3-MX_TIM1_Init-TIM1-false-HAL-true,4-MX_USART2_UART_Init-USART2-false-HAL-true,5-MX_TIM2_Init-TIM2-false-HAL-true,6-MX_ADC1_Init-ADC1-false-HAL-true,7-MX_USART1_UART_Init-USART1-false-HAL-true,8-MX_I2C1_Init-I2C1-false-HAL-true,9-MX_TIM3_Init-TIM3-false-HAL-true,10-MX_TIM4_Init-TIM4-false-HAL-true,11-MX_SPI1_Init-SPI1-false-HAL-true
-=======
 ProjectManager.functionlistsort=1-SystemClock_Config-RCC-false-HAL-false,2-MX_GPIO_Init-GPIO-false-HAL-true,3-MX_SPI1_Init-SPI1-false-HAL-true,4-MX_TIM1_Init-TIM1-false-HAL-true,5-MX_USART2_UART_Init-USART2-false-HAL-true,6-MX_TIM2_Init-TIM2-false-HAL-true,7-MX_ADC1_Init-ADC1-false-HAL-true,8-MX_USART1_UART_Init-USART1-false-HAL-true,9-MX_I2C1_Init-I2C1-false-HAL-true,10-MX_TIM3_Init-TIM3-false-HAL-true,11-MX_TIM4_Init-TIM4-false-HAL-true
->>>>>>> refs/remotes/origin/master
 RCC.CECFreq_Value=32786.88524590164
 RCC.CortexFreq_Value=16000000
 RCC.FamilyName=M
