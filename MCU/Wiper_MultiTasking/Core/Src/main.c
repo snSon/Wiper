@@ -59,14 +59,7 @@ void SPI1_Start_Receive_IT()
 {
 	HAL_SPI_Receive_IT(&hspi1, spi1_rx_buf, 1); // 1byte 먼저 수신 대기
 }
-void StartDefaultTask(void const * argument)
-{
-  for(;;)
-  {
 
-    osDelay(1);
-  }
-}
 void Timer_Accuracy_Test() // 타이머 정확도 테스트
 {
     HAL_TIM_Base_Start(&htim2);

@@ -5,13 +5,13 @@
 
 // 핀 매핑
 #define IN1_PORT GPIOC // GPIOA 0 (기존)
-#define IN1_PIN  GPIO_PIN_4
-#define IN2_PORT GPIOC // GPIOA 1 (기존)
-#define IN2_PIN  GPIO_PIN_5
-#define IN3_PORT GPIOA
-#define IN3_PIN  GPIO_PIN_4
+#define IN1_PIN  GPIO_PIN_10
+#define IN2_PORT GPIOA
+#define IN2_PIN  GPIO_PIN_12
+#define IN3_PORT GPIOB
+#define IN3_PIN  GPIO_PIN_14
 #define IN4_PORT GPIOB
-#define IN4_PIN  GPIO_PIN_5
+#define IN4_PIN  GPIO_PIN_12
 
 // PWM 핸들 (좌: TIM1_CH1, 우: TIM3_CH4)
 #define LEFT_PWM_TIMER    htim1
@@ -58,7 +58,7 @@ void Motor_Stop(void)
 // 전진
 void Motor_Forward(uint16_t speed)
 {
-    // SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
+    //SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
 	SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
     SetMotorSpeed(speed, speed);
     current_speed = speed;
@@ -67,7 +67,7 @@ void Motor_Forward(uint16_t speed)
 // 후진
 void Motor_Backward(uint16_t speed)
 {
-    // SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
+    //SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
 	SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
     SetMotorSpeed(speed, speed);
     current_speed = speed;
@@ -76,7 +76,7 @@ void Motor_Backward(uint16_t speed)
 // 좌회전 (좌측 정지, 우측 전진)
 void Motor_Left(uint16_t speed)
 {
-    // SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
+    //SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
 	SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
     SetMotorSpeed(0, speed);
 }
