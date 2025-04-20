@@ -58,7 +58,6 @@ void Motor_Stop(void)
 // 전진
 void Motor_Forward(uint16_t speed)
 {
-    //SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
 	SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
     SetMotorSpeed(speed, speed);
     current_speed = speed;
@@ -67,7 +66,6 @@ void Motor_Forward(uint16_t speed)
 // 후진
 void Motor_Backward(uint16_t speed)
 {
-    //SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
 	SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
     SetMotorSpeed(speed, speed);
     current_speed = speed;
@@ -76,7 +74,6 @@ void Motor_Backward(uint16_t speed)
 // 좌회전 (좌측 정지, 우측 전진)
 void Motor_Left(uint16_t speed)
 {
-    //SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET);
 	SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
     SetMotorSpeed(0, speed);
 }
@@ -84,7 +81,6 @@ void Motor_Left(uint16_t speed)
 // 우회전 (우측 정지, 좌측 전진)
 void Motor_Right(uint16_t speed)
 {
-    // SetMotorDirection(GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_RESET, GPIO_PIN_RESET);
     SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_SET, GPIO_PIN_SET);
     SetMotorSpeed(speed, 0);
 }
