@@ -27,6 +27,7 @@
 #include "cds.h"
 #include "dht.h"
 #include "spi.h"
+#include "lineTracer.h"
 
 extern TIM_HandleTypeDef htim4;   // TIM4 핸들
 extern UART_HandleTypeDef huart2; // UART2 핸들
@@ -52,6 +53,7 @@ osThreadId_t mpuTaskHandle;
 osThreadId_t cdsTaskHandle;
 osMessageQueueId_t uartQueueHandle; // 센서 로그 전용
 QueueHandle_t motorQueueHandle;     // 모터 명령 큐
+osThreadId_t lineTracerTaskHandle; // 라인트레이서
 
 // ---- 초음파 태스크 핸들 ----
 osThreadId_t ultrasonicTask1Handle;
@@ -114,6 +116,13 @@ const osThreadAttr_t ultrasonicTask3_attributes = {
 
 const osThreadAttr_t spiTask_attributes = {
   .name = "ultrasonicTask2",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// 라인트레이서 속성
+const osThreadAttr_t lineTracerTask_attributes = {
+  .name = "lineTracerTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -187,6 +196,8 @@ void MX_FREERTOS_Init(void)
   ultrasonicTask3Handle = osThreadNew(UltrasonicTask3, NULL, &ultrasonicTask3_attributes);
 
   spiTaskHandle = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
+
+  lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes);
   /* USER CODE END init */
 }
 
