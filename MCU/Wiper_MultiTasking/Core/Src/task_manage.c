@@ -18,6 +18,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#define DURATION 1000
+
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim4;
@@ -63,7 +65,7 @@ void StartMPUTask(void *argument)
 
     osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
 
-    osDelay(2000);
+    osDelay(DURATION);
   }
 }
 
@@ -78,7 +80,7 @@ void StartCDSTask(void *argument)
              "[CDS] Light Intensity: %d\r\n", light);
 
     osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-    osDelay(2000);
+    osDelay(DURATION);
   }
 }
 
@@ -126,7 +128,7 @@ void UltrasonicTask1(void *argument)
         uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
         snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic1] Distance: %lu cm\r\n", d);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-        osDelay(1000);
+        osDelay(DURATION);
     }
 }
 
@@ -137,7 +139,7 @@ void UltrasonicTask2(void *argument)
         uint32_t d = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
         snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic2] Distance: %lu cm\r\n", d);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-        osDelay(1000);
+        osDelay(DURATION);
     }
 }
 
@@ -148,7 +150,7 @@ void UltrasonicTask3(void *argument)
         uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
         snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic3] Distance: %lu cm\r\n", d);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-        osDelay(1000);
+        osDelay(DURATION);
     }
 }
 
@@ -170,7 +172,7 @@ void StartSPITask(void *argument)
         }
 
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-        osDelay(100);  // 100ms 주기 (또는 원하시는 주기로 조절)
+        osDelay(DURATION/10);  // 100ms 주기 (또는 원하시는 주기로 조절)
     }
 }
 
@@ -186,7 +188,7 @@ void StartLineTracerTask(void *argument)
 
         snprintf(msg, sizeof(msg), "[Line] L:%d C:%d R:%d -> Dir:%d\r\n", left, center, right, dir);
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-
-        osDelay(1000);  // 1000ms 주기
+        // UART를 바로 보내는게 아닌 메시지큐에 담아서 보낼 수 있도록 수정 필요 //
+        osDelay(DURATION);
     }
 }
