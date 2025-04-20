@@ -6,14 +6,16 @@ STM32F446RE 기반 FreeRTOS 프로젝트로, 자율주행 RC카에서 각종 센
 
 ## 📁 사용자 정의 헤더 파일
 
-| 파일명         | 설명                                 |
+| 파일명          | 설명                                 |
 |----------------|--------------------------------------|
 | `bluetooth.h`  | 블루투스 통신 제어 함수 선언        |
 | `cds.h`        | 조도 센서(CDS) 값을 읽기 위한 헤더  |
-| `dht.h`        | DHT 온습도 센서 제어 헤더           |
-| `motor.h`      | DC 모터 제어용 함수 정의             |
-| `mpu6050.h`    | MPU6050 IMU 센서 제어 헤더          |
-| `ultrasonic.h` | HC-SR04 초음파 센서 제어 헤더       |
+| `dht.h`        | DHT 온습도 센서 제어 헤더          |
+| `motor.h`      | DC 모터 제어용 함수 정의           |
+| `mpu6050.h`    | MPU6050 IMU 센서 제어 헤더       |
+| `ultrasonic.h` | HC-SR04 초음파 센서 제어 헤더      |
+| `lineTracer.h` | LineTracer 센서 제어 헤더        |
+| `task_manage.h` | tasks 정의                    | 
 
 ---
 
@@ -27,6 +29,8 @@ STM32F446RE 기반 FreeRTOS 프로젝트로, 자율주행 RC카에서 각종 센
 | `motor.c`      | 모터 초기화, 정방향/역방향/회전 제어, 가감속 구현 |
 | `mpu6050.c`    | IMU 초기화, 가속도/자이로 데이터 처리, Pitch/Roll/Yaw 계산 |
 | `ultrasonic.c` | 초음파 거리 측정 및 FreeRTOS Task 예제 구현 |
+| `lineTracer.c` | line 센서 읽기, line 방향 정하는 함수 구현 |
+| `task_manage.c`| osThreadId_t 선언 및 tasks 정의 |
 
 ---
 
@@ -50,8 +54,8 @@ STM32CubeMX에서 자동 생성된 코드들로, 시스템 및 주변 장치 초
 
 ### `freertos.c`
 
-- RTOS의 핵심 Task 및 메시지 큐 정의
-- 각 센서 Task, UART 로그 출력 Task, BLE 명령 처리 Task를 병렬로 생성
+- RTOS의 핵심
+- 각 센서 Task, UART 로그 출력 Task, BLE 명령 처리 Task 등을 병렬로 생성
 - 실제 애플리케이션 로직은 모두 여기서 실행됨
 
 ---
