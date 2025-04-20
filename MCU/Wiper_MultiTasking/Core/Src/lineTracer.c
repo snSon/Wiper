@@ -24,24 +24,25 @@
 #define SENSOR_RIGHT_PIN    GPIO_PIN_5
 #define SENSOR_RIGHT_PORT   GPIOB
 
-// 라인트레이서 태스크 함수 정의
-void StartLineTracerTask(void *argument)
+
+void ReadLineSensor(uint8_t* left, uint8_t* center, uint8_t* right)
 {
-    char msg[32];
-    for (;;)
-    {
-      // 센서값 읽기
-      uint8_t left_raw   = HAL_GPIO_ReadPin(SENSOR_LEFT_PORT, SENSOR_LEFT_PIN);
-      uint8_t center_raw = HAL_GPIO_ReadPin(SENSOR_CENTER_PORT, SENSOR_CENTER_PIN);
-      uint8_t right_raw  = HAL_GPIO_ReadPin(SENSOR_RIGHT_PORT, SENSOR_RIGHT_PIN);
-      // 센서 해석 (0: 흰색, 1: 검정)
-	  uint8_t left   = (left_raw == GPIO_PIN_RESET)   ? 1 : 0;
-	  uint8_t center = (center_raw == GPIO_PIN_RESET) ? 1 : 0;
-	  uint8_t right  = (right_raw == GPIO_PIN_RESET)  ? 1 : 0;
+    uint8_t left_raw   = HAL_GPIO_ReadPin(SENSOR_LEFT_PORT, SENSOR_LEFT_PIN);
+    uint8_t center_raw = HAL_GPIO_ReadPin(SENSOR_CENTER_PORT, SENSOR_CENTER_PIN);
+    uint8_t right_raw  = HAL_GPIO_ReadPin(SENSOR_RIGHT_PORT, SENSOR_RIGHT_PIN);
 
-      snprintf(msg, sizeof(msg), "[Line] L:%d C:%d R:%d\r\n", left, center, right);
-      HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+    *left   = (left_raw == GPIO_PIN_RESET)   ? 1 : 0;
+    *center = (center_raw == GPIO_PIN_RESET) ? 1 : 0;
+    *right  = (right_raw == GPIO_PIN_RESET)  ? 1 : 0;
+}
 
-      osDelay(1000); // 100ms 주기
-    }
+LinePosition DecideLineDirection(uint8_t left, uint8_t center, uint8_t right)
+{
+    if (left && center && right) return LINE_ALL;
+    if (left && center)          return LINE_LEFT_CENTER;
+    if (right && center)         return LINE_RIGHT_CENTER;
+    if (center)                  return LINE_CENTER;
+    if (left)                    return LINE_LEFT;
+    if (right)                   return LINE_RIGHT;
+    return LINE_NONE;
 }
