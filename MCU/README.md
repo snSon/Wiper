@@ -30,7 +30,7 @@ STM32F446RE 기반 FreeRTOS 프로젝트로, 자율주행 RC카에서 각종 센
 | `mpu6050.c`    | IMU 초기화, 가속도/자이로 데이터 처리, Pitch/Roll/Yaw 계산 |
 | `ultrasonic.c` | 초음파 거리 측정 및 FreeRTOS Task 예제 구현 |
 | `lineTracer.c` | line 센서 읽기, line 방향 정하는 함수 구현 |
-| `task_manage.c`| osThreadId_t 선언 및 tasks 정의 |
+| `task_manage.c`| osThreadId_t 선언 및 tasks 구현 |
 
 ---
 
