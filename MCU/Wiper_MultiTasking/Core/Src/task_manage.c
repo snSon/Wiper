@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define DURATION 1000
+#define DURATION 3000
 
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
