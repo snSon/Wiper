@@ -3,6 +3,10 @@
  *
  *  Created on: Apr 20, 2025
  *      Author: jiwan
+ *
+ *  Modified on : Arr 22, 2025
+ *      - Intergrate Sensor task
+ *      Author : Juseok Son
  */
 
 #include "task_manage.h"
@@ -27,9 +31,7 @@ extern TIM_HandleTypeDef htim4;
 osThreadId_t mpuTaskHandle;
 osThreadId_t cdsTaskHandle;
 osThreadId_t lineTracerTaskHandle;
-osThreadId_t ultrasonicTask1Handle;
-osThreadId_t ultrasonicTask2Handle;
-osThreadId_t ultrasonicTask3Handle;
+osThreadId_t ultrasonicTaskHandle;
 osThreadId_t spiTaskHandle;
 
 QueueHandle_t motorQueueHandle;
@@ -121,34 +123,14 @@ void StartMotorTask(void *argument)
   }
 }
 
-void UltrasonicTask1(void *argument)
+void UltrasonicTask(void *argument)
 {
 	SensorMessage_t msg_out;
     for (;;) {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
-        snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic1] Distance: %lu cm\r\n", d);
-        osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-        osDelay(DURATION);
-    }
-}
-
-void UltrasonicTask2(void *argument)
-{
-	SensorMessage_t msg_out;
-    for (;;) {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
-        snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic2] Distance: %lu cm\r\n", d);
-        osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-        osDelay(DURATION);
-    }
-}
-
-void UltrasonicTask3(void *argument)
-{
-	SensorMessage_t msg_out;
-    for (;;) {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
-        snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic3] Distance: %lu cm\r\n", d);
+        uint32_t d1 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
+        uint32_t d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
+        uint32_t d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
+        snprintf(msg_out.message, sizeof(msg_out.message), "D1(LEFT) : %lu cm\r\nD2(MID) : %lu cm\r\nD3(RIGHT) : %lu cm\r\n", d1, d2, d3);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);
     }

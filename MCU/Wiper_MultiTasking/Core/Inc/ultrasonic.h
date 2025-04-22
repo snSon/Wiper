@@ -3,6 +3,10 @@
  *
  *  Created on: Apr 12, 2025
  *      Author: JunYeong Lee
+ *
+ *  Modified on : Arr 22, 2025
+ *      - Intergrate Sensor task
+ *      Author : Juseok Son
  */
 
 #ifndef INC_ULTRASONIC_H_
@@ -13,9 +17,7 @@
 
 uint32_t read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
                                      GPIO_TypeDef* echoPort, uint16_t echoPin);
-void UltrasonicTask1(void *argument);
-void UltrasonicTask2(void *argument);
-void UltrasonicTask3(void *argument);
+void UltrasonicTask(void *argument);
 void USdelay_us(uint32_t us);
 
 #endif /* INC_ULTRASONIC_H_ */
