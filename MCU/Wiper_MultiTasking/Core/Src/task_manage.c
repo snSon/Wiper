@@ -169,7 +169,14 @@ void StartSPITask(void *argument)
             uint8_t red_light = (rx_val >> 1) & 0x01;
             uint8_t car       =  rx_val       & 0x01;
 
-            snprintf(msg, sizeof(msg), "[SPI 수신] 사람:%d, 신호:%d, 차량:%d\r\n", human, red_light, car);
+            Motor_Forward(600);
+            if(human || red_light || car){
+            	Motor_Stop();
+            	snprintf(msg, sizeof(msg), "[SPI 수신] Stop - 사람:%d, 신호:%d, 차량:%d\r\n", human, red_light, car);
+            }
+            else{
+            	snprintf(msg, sizeof(msg), "[SPI 수신] 사람:%d, 신호:%d, 차량:%d\r\n", human, red_light, car);
+            }
         }
         else
         {
