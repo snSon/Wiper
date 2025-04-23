@@ -108,3 +108,8 @@ void Motor_Decelerate(uint16_t step_delay_ms)
     }
     Motor_Stop();
 }
+
+uint16_t SafeSpeed(uint16_t desired, uint16_t min_required)
+{
+	return (desired < min_required) ? min_required : desired;
+}

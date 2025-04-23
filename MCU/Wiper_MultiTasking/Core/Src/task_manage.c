@@ -25,7 +25,7 @@
 
 #define DURATION 2000
 #define LINE_TRACE_PERIOD 1000
-#define OBSTACLE_DIST 10 // cm
+
 
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
@@ -187,6 +187,7 @@ void StartSPITask(void *argument)
 }
 
 
+
 void StartLineTracerTask(void *argument)
 {
     uint8_t left, center, right;
@@ -196,64 +197,13 @@ void StartLineTracerTask(void *argument)
     {
         ReadLineSensor(&left, &center, &right);
         LinePosition dir = DecideLineDirection(left, center, right);
-        uint32_t dist = ultrasonic_center_distance_cm; // 중앙 초음파 센서 거리
 
-        // 1. 센서 상태 로그 출력
         snprintf(msg_out1.message, sizeof(msg_out1.message),
-        		"[Line] L:%d C:%d R:%d -> Dir:%d\r\n", left, center, right, dir);
+                 "[Line] L:%d C:%d R:%d -> Dir:%d\r\n", left, center, right, dir);
         osMessageQueuePut(uartQueueHandle, &msg_out1, 0, 0);
 
-        // 2. 초음파 거리 기반 판단 및 동작
-        if (dist < OBSTACLE_DIST)
-        {
-			   Motor_Stop();
-			   snprintf(msg_out2.message, sizeof(msg_out2.message),
-					   "[Line] 장애물 감지 (%lu cm), 정지\r\n", dist);
-        }
-        else
-        {
-        	// 중심 보정 포함한 라인트레이싱
-        	switch (dir)
-			{
-				case LINE_ALL:
-				case LINE_CENTER:
-				case LINE_LEFT_CENTER:
-				case LINE_RIGHT_CENTER:
-					if (last_dir == LINE_LEFT)
-					{
-						Motor_Right(current_speed / 2);  // 좌측 치우침 → 우보정
-						snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 보정: 우회전");
-					}
-					else if (last_dir == LINE_RIGHT)
-					{
-						Motor_Left(current_speed / 2);   // 우측 치우침 → 좌보정
-						snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 보정: 좌회전");
-					}
-					else
-					{
-						Motor_Forward(current_speed);
-						snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 직진");
-					}
-					last_dir = LINE_CENTER;
-					break;
-				case LINE_LEFT:
-					Motor_Left(current_speed);
-					snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 살짝 좌회전\r\n");
-					last_dir = LINE_LEFT;
-					break;
-				case LINE_RIGHT:
-					Motor_Right(current_speed);
-					snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 살짝 우회전\r\n");
-					last_dir = LINE_RIGHT;
-					break;
-				default:
-					Motor_Stop();
-					snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 라인 없음, 정지\r\n");
-					break;
-			}
-        }
+        LineTracerDriveDecision(dir, &msg_out2);
 
-        // 3. 동작 로그 출력
         osMessageQueuePut(uartQueueHandle, &msg_out2, 0, 0);
         osDelay(LINE_TRACE_PERIOD);
     }

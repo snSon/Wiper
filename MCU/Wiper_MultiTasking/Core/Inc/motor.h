@@ -3,6 +3,8 @@
 
 #include "stm32f4xx_hal.h"
 
+extern uint16_t current_speed;
+
 // 모터 방향
 typedef enum {
     MOTOR_STOP = 0,
@@ -26,4 +28,6 @@ void Motor_Right(uint16_t speed);
 void Motor_Accelerate(uint16_t target_speed, uint16_t step_delay_ms);
 void Motor_Decelerate(uint16_t step_delay_ms);
 
+// 최저 속도
+uint16_t SafeSpeed(uint16_t desired, uint16_t min_required);
 #endif
