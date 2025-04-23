@@ -4,6 +4,10 @@
  *  Created on: Apr 20, 2025
  *  Modified on: Apr 21, 2025
  *      Author: jiwan
+ *
+ *  Modified on : Arr 22, 2025
+ *      - Intergrate Sensor task
+ *      Author : Juseok Son
  */
 
 #include "task_manage.h"
@@ -30,9 +34,7 @@ extern TIM_HandleTypeDef htim4;
 osThreadId_t mpuTaskHandle;
 osThreadId_t cdsTaskHandle;
 osThreadId_t lineTracerTaskHandle;
-osThreadId_t ultrasonicTask1Handle;
-osThreadId_t ultrasonicTask2Handle;
-osThreadId_t ultrasonicTask3Handle;
+osThreadId_t ultrasonicTaskHandle;
 osThreadId_t spiTaskHandle;
 
 QueueHandle_t motorQueueHandle;
@@ -136,39 +138,15 @@ void StartMotorTask(void *argument)
   }
 }
 
-void UltrasonicTask1(void *argument)
+void UltrasonicTask(void *argument)
 {
 	SensorMessage_t msg_out;
     for (;;)
     {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
-        snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic1] Distance: %lu cm\r\n", d);
-        osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-        osDelay(DURATION);
-    }
-}
-
-void UltrasonicTask2(void *argument)
-{
-	SensorMessage_t msg_out;
-    for (;;)
-    {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
-        ultrasonic_center_distance_cm = d; // 전역 공유 변수에 저장
-
-        snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic2] Distance: %lu cm\r\n", d);
-        osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
-        osDelay(DURATION);
-    }
-}
-
-void UltrasonicTask3(void *argument)
-{
-	SensorMessage_t msg_out;
-    for (;;)
-    {
-        uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
-        snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic3] Distance: %lu cm\r\n", d);
+        uint32_t d1 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
+        uint32_t d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
+        uint32_t d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
+        snprintf(msg_out.message, sizeof(msg_out.message), "D1(LEFT) : %lu cm\r\nD2(MID) : %lu cm\r\nD3(RIGHT) : %lu cm\r\n", d1, d2, d3);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);
     }
@@ -177,14 +155,26 @@ void UltrasonicTask3(void *argument)
 void StartSPITask(void *argument)
 {
     uint8_t rx_val = 0;
-    uint8_t tx_val = 0x5A;
+    uint8_t tx_val = 0x5A;  // Jetson에게 줄 응답 (필요시 수정 가능)
     char msg[64];
 
     for(;;)
     {
         if (HAL_SPI_TransmitReceive(&hspi1, &tx_val ,&rx_val, 1, HAL_MAX_DELAY) == HAL_OK)
         {
-            snprintf(msg, sizeof(msg), "[SPI] 수신: 0x%02X, 응답: 0x%02X\r\n", rx_val, tx_val);
+            // 받은 데이터 해석
+            uint8_t human     = (rx_val >> 2) & 0x01;
+            uint8_t red_light = (rx_val >> 1) & 0x01;
+            uint8_t car       =  rx_val       & 0x01;
+
+            Motor_Forward(600);
+            if(human || red_light || car){
+            	Motor_Stop();
+            	snprintf(msg, sizeof(msg), "[SPI 수신] Stop - 사람:%d, 신호:%d, 차량:%d\r\n", human, red_light, car);
+            }
+            else{
+            	snprintf(msg, sizeof(msg), "[SPI 수신] 사람:%d, 신호:%d, 차량:%d\r\n", human, red_light, car);
+            }
         }
         else
         {
@@ -192,9 +182,10 @@ void StartSPITask(void *argument)
         }
 
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-        osDelay(DURATION/10);  // 100ms 주기 (또는 원하시는 주기로 조절)
+        osDelay(100); // 100ms 주기
     }
 }
+
 
 void StartLineTracerTask(void *argument)
 {
