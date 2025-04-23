@@ -19,7 +19,7 @@
 #define RIGHT_PWM_TIMER   htim3
 #define RIGHT_PWM_CHANNEL TIM_CHANNEL_4
 
-static uint16_t current_speed = 0;  // 가속 제어용
+uint16_t current_speed = 0;  // 가속 제어용
 
 void Motor_Init(void)
 {

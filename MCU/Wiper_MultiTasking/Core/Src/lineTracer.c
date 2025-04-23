@@ -5,7 +5,6 @@
  *      Author: jiwan
  */
 
-
 #include "LineTracer.h"
 #include "gpio.h"
 #include "usart.h"

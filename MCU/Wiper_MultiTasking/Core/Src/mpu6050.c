@@ -22,9 +22,9 @@ static float yaw_angle = 0.0f;
 uint8_t MPU6050_Init()
 {
     uint8_t check, data = 0;
-    HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, WHO_AM_I_REG, 1, &check, 1, 100);
+    HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, WHO_AM_I_REG, 1, &check, 1, 200);
     if (check != 0x68) return 0;
-    HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, PWR_MGMT_1, 1, &data, 1, 100);
+    HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, PWR_MGMT_1, 1, &data, 1, 200);
     return 1;
 }
 

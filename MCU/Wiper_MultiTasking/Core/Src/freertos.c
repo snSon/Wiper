@@ -49,21 +49,21 @@ extern uint8_t current_motor_cmd;
 /* MPU6050 태스크 속성 */
 const osThreadAttr_t mpuTask_attributes = {
   .name = "mpuTask",
-  .stack_size = 512 * 4,
+  .stack_size = 384 * 4, // 1.5KB
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 /* CDS 태스크 속성 */
 const osThreadAttr_t cdsTask_attributes = {
   .name = "cdsTask",
-  .stack_size = 512 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 /* UARTTask 속성 */
 const osThreadAttr_t uartTask_attributes = {
   .name = "uartTask",
-  .stack_size = 512 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -77,32 +77,32 @@ const osThreadAttr_t motorTask_attributes = {
 /* 초음파 태스크 속성들 */
 const osThreadAttr_t ultrasonicTask1_attributes = {
   .name = "ultrasonicTask1",
-  .stack_size = 128 * 4,
+  .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 const osThreadAttr_t ultrasonicTask2_attributes = {
   .name = "ultrasonicTask2",
-  .stack_size = 128 * 4,
+  .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 const osThreadAttr_t ultrasonicTask3_attributes = {
   .name = "ultrasonicTask3",
-  .stack_size = 128 * 4,
+  .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 const osThreadAttr_t spiTask_attributes = {
   .name = "spiTask",
-  .stack_size = 128 * 4,
+  .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 // 라인트레이서 속성
 const osThreadAttr_t lineTracerTask_attributes = {
   .name = "lineTracerTask",
-  .stack_size = 128 * 4,
+  .stack_size = 384 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE END RTOS_THREADS */

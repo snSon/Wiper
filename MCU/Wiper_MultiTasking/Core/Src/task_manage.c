@@ -2,6 +2,7 @@
  * task_manage.c
  *
  *  Created on: Apr 20, 2025
+ *  Modified on: Apr 21, 2025
  *      Author: jiwan
  */
 
@@ -18,7 +19,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#define DURATION 3000
+#define DURATION 2000
+#define LINE_TRACE_PERIOD 1000
+#define OBSTACLE_DIST 10 // cm
 
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
@@ -35,7 +38,20 @@ osThreadId_t spiTaskHandle;
 QueueHandle_t motorQueueHandle;
 osMessageQueueId_t uartQueueHandle;
 
-uint8_t current_motor_cmd = 'S';
+uint8_t current_motor_cmd = 'S'; // BLE 용
+volatile uint32_t ultrasonic_center_distance_cm = 1000;  // 기본값: 멀리 있음
+extern uint16_t current_speed;
+
+static LinePosition last_dir = LINE_CENTER;
+
+typedef enum {
+	CAR_STOP = 0,
+	CAR_FORWARD,
+	CAR_LEFT,
+	CAR_RIGHT
+} CarState_t;
+
+static CarState_t last_valid_cmd = CAR_STOP; // motor (자율 주행)
 
 void StartMPUTask(void *argument)
 {
@@ -71,7 +87,6 @@ void StartMPUTask(void *argument)
 
 void StartCDSTask(void *argument)
 {
-  /* Infinite loop */
   for(;;)
   {
     SensorMessage_t msg_out;
@@ -124,7 +139,8 @@ void StartMotorTask(void *argument)
 void UltrasonicTask1(void *argument)
 {
 	SensorMessage_t msg_out;
-    for (;;) {
+    for (;;)
+    {
         uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
         snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic1] Distance: %lu cm\r\n", d);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
@@ -135,8 +151,11 @@ void UltrasonicTask1(void *argument)
 void UltrasonicTask2(void *argument)
 {
 	SensorMessage_t msg_out;
-    for (;;) {
+    for (;;)
+    {
         uint32_t d = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
+        ultrasonic_center_distance_cm = d; // 전역 공유 변수에 저장
+
         snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic2] Distance: %lu cm\r\n", d);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);
@@ -146,7 +165,8 @@ void UltrasonicTask2(void *argument)
 void UltrasonicTask3(void *argument)
 {
 	SensorMessage_t msg_out;
-    for (;;) {
+    for (;;)
+    {
         uint32_t d = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
         snprintf(msg_out.message, sizeof(msg_out.message), "[Ultrasonic3] Distance: %lu cm\r\n", d);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
@@ -179,16 +199,71 @@ void StartSPITask(void *argument)
 void StartLineTracerTask(void *argument)
 {
     uint8_t left, center, right;
-    char msg[32];
+    SensorMessage_t msg_out1, msg_out2;
 
     for (;;)
     {
         ReadLineSensor(&left, &center, &right);
         LinePosition dir = DecideLineDirection(left, center, right);
+        uint32_t dist = ultrasonic_center_distance_cm; // 중앙 초음파 센서 거리
 
-        snprintf(msg, sizeof(msg), "[Line] L:%d C:%d R:%d -> Dir:%d\r\n", left, center, right, dir);
-        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-        // UART를 바로 보내는게 아닌 메시지큐에 담아서 보낼 수 있도록 수정 필요 //
-        osDelay(DURATION);
+        // 1. 센서 상태 로그 출력
+        snprintf(msg_out1.message, sizeof(msg_out1.message),
+        		"[Line] L:%d C:%d R:%d -> Dir:%d\r\n", left, center, right, dir);
+        osMessageQueuePut(uartQueueHandle, &msg_out1, 0, 0);
+
+        // 2. 초음파 거리 기반 판단 및 동작
+        if (dist < OBSTACLE_DIST)
+        {
+			   Motor_Stop();
+			   snprintf(msg_out2.message, sizeof(msg_out2.message),
+					   "[Line] 장애물 감지 (%lu cm), 정지\r\n", dist);
+        }
+        else
+        {
+        	// 중심 보정 포함한 라인트레이싱
+        	switch (dir)
+			{
+				case LINE_ALL:
+				case LINE_CENTER:
+				case LINE_LEFT_CENTER:
+				case LINE_RIGHT_CENTER:
+					if (last_dir == LINE_LEFT)
+					{
+						Motor_Right(current_speed / 2);  // 좌측 치우침 → 우보정
+						snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 보정: 우회전");
+					}
+					else if (last_dir == LINE_RIGHT)
+					{
+						Motor_Left(current_speed / 2);   // 우측 치우침 → 좌보정
+						snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 보정: 좌회전");
+					}
+					else
+					{
+						Motor_Forward(current_speed);
+						snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 직진");
+					}
+					last_dir = LINE_CENTER;
+					break;
+				case LINE_LEFT:
+					Motor_Left(current_speed);
+					snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 살짝 좌회전\r\n");
+					last_dir = LINE_LEFT;
+					break;
+				case LINE_RIGHT:
+					Motor_Right(current_speed);
+					snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 살짝 우회전\r\n");
+					last_dir = LINE_RIGHT;
+					break;
+				default:
+					Motor_Stop();
+					snprintf(msg_out2.message, sizeof(msg_out2.message), "[Line_Trace] 라인 없음, 정지\r\n");
+					break;
+			}
+        }
+
+        // 3. 동작 로그 출력
+        osMessageQueuePut(uartQueueHandle, &msg_out2, 0, 0);
+        osDelay(LINE_TRACE_PERIOD);
     }
 }
