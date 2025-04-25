@@ -16,8 +16,6 @@ typedef enum {
 	LINE_LEFT,
 	LINE_CENTER,
 	LINE_RIGHT,
-	LINE_LEFT_CENTER,
-	LINE_RIGHT_CENTER,
 	LINE_ALL
 } LinePosition;
 

@@ -42,11 +42,11 @@ void ReadLineSensor(uint8_t* left, uint8_t* center, uint8_t* right)
 
 LinePosition DecideLineDirection(uint8_t left, uint8_t center, uint8_t right)
 {
-    if (left && center && right) return LINE_ALL;
-    if (left && center)          return LINE_LEFT_CENTER;
-    if (right && center)         return LINE_RIGHT_CENTER;
-    if (center)                  return LINE_CENTER;
-    if (left)                    return LINE_LEFT;
-    if (right)                   return LINE_RIGHT;
+	if (left && center && right) return LINE_ALL;
+	if (left && center && !right) return LINE_LEFT;     // LEFT 우선
+	if (right && center && !left) return LINE_RIGHT;    // RIGHT 우선
+	if (left && !center && !right) return LINE_LEFT;
+	if (right && !center && !left) return LINE_RIGHT;
+	if (center && !left && !right) return LINE_CENTER;
     return LINE_NONE;
 }

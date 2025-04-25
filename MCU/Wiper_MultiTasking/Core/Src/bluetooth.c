@@ -17,7 +17,7 @@ extern uint8_t current_motor_cmd;
 
 static uint8_t rx_byte;
 
-static uint16_t global_motor_speed = 600;  // 기본 속도 600
+static uint16_t global_motor_speed = 800;  // 기본 속도 600
 
 void Bluetooth_Init(void)
 {
@@ -79,10 +79,10 @@ void Parse_Command(const char* cmd)
             global_motor_speed = 500;
             break;
         case 'e':
-            global_motor_speed = 700;
+            global_motor_speed = 650;
             break;
         case 'i':
-            global_motor_speed = 1000;
+            global_motor_speed = 800;
             break;
         default:
         {
