@@ -85,7 +85,10 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
             // 1. 1초 미만이면, 후진 없이 좌/우 회전만 시도
             if (elapsed < pdMS_TO_TICKS(1000))
             {
-            	(last_dir == LINE_LEFT) ? Motor_Left(current_speed) : Motor_Right(current_speed);
+            	if (last_dir == LINE_LEFT)
+            		Motor_Left(current_speed);
+				else
+					Motor_Right(current_speed);
             	 snprintf(msg_out->message, sizeof(msg_out->message),
 							 "[Line_Trace] 라인 로스트 (%.1fs), 회전 복구 시도 중\r\n",
 							 elapsed * 1.0f / configTICK_RATE_HZ);
@@ -96,7 +99,10 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
 			{
 				Motor_Backward(current_speed);
 				osDelay(RECOVERY_DELAY_MS);
-				(last_dir == LINE_LEFT) ? Motor_Left(current_speed) : Motor_Right(current_speed);
+				if (last_dir == LINE_LEFT)
+					Motor_Left(current_speed);
+				else
+					Motor_Right(current_speed);
 				snprintf(msg_out->message, sizeof(msg_out->message),
 						 "[Line_Trace] 라인 로스트 (%.1fs), 후진+회전 복구 시도\r\n",
 						 elapsed * 1.0f / configTICK_RATE_HZ);

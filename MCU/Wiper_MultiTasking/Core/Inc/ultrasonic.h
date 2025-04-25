@@ -15,7 +15,7 @@
 #include "stm32f4xx_hal.h"
 #include "main.h"
 
-uint32_t read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
+float read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
                                      GPIO_TypeDef* echoPort, uint16_t echoPin);
 void UltrasonicTask(void *argument);
 void USdelay_us(uint32_t us);

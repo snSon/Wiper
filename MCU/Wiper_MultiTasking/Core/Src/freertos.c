@@ -74,12 +74,12 @@ const osThreadAttr_t motorTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
-/* 초음파 태스크 속성들 */
-const osThreadAttr_t ultrasonicTask_attributes = {
-  .name = "ultrasonicTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
+///* 초음파 태스크 속성들 */
+//const osThreadAttr_t ultrasonicTask_attributes = {
+//  .name = "ultrasonicTask",
+//  .stack_size = 128 * 4,
+//  .priority = (osPriority_t) osPriorityNormal,
+//};
 
 const osThreadAttr_t spiTask_attributes = {
   .name = "spiTask",
@@ -135,7 +135,7 @@ void MX_FREERTOS_Init(void)
   cdsTaskHandle = osThreadNew(StartCDSTask, NULL, &cdsTask_attributes);
   osThreadNew(StartUARTTask, NULL, &uartTask_attributes);
   osThreadNew(StartMotorTask, NULL, &motorTask_attributes);
-  ultrasonicTaskHandle = osThreadNew(UltrasonicTask, NULL, &ultrasonicTask_attributes);
+  // ultrasonicTaskHandle = osThreadNew(UltrasonicTask, NULL, &ultrasonicTask_attributes);
   spiTaskHandle = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
   lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes);
   /* USER CODE END init */

@@ -23,7 +23,7 @@ void USdelay_us(uint32_t us)
 }
 
 
-uint32_t read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
+float read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
                                      GPIO_TypeDef* echoPort, uint16_t echoPin)
 {
 	// Trigger pulse
@@ -49,6 +49,6 @@ uint32_t read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
     uint32_t duration = (end >= start) ? (end - start) : (MAX_TIMER_COUNT - start + end);
 
     // Calculate distance in cm
-    uint32_t distance_cm = ((duration * SPEED_OF_SOUND_CM_PER_US) / 2.0f);
+    float distance_cm = (((float)duration * SPEED_OF_SOUND_CM_PER_US) / 2.0f);
     return distance_cm;
 }
