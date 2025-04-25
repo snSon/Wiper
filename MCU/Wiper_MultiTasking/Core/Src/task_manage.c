@@ -26,7 +26,6 @@
 #define DURATION 2000
 #define LINE_TRACE_PERIOD 500
 
-
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim4;
@@ -46,14 +45,15 @@ extern uint16_t current_speed;
 
 static LinePosition last_dir = LINE_CENTER;
 
-typedef enum {
+typedef enum
+{
 	CAR_STOP = 0,
 	CAR_FORWARD,
 	CAR_LEFT,
 	CAR_RIGHT
 } CarState_t;
 
-static CarState_t last_valid_cmd = CAR_STOP; // motor (자율 주행)
+static CarState_t last_valid_cmd = CAR_STOP;
 
 void StartMPUTask(void *argument)
 {
@@ -62,24 +62,15 @@ void StartMPUTask(void *argument)
     MPU6050_Read_Accel();
     MPU6050_Read_Gyro();
 
-    float pitch = MPU6050_CalcPitch();
-    float roll  = MPU6050_CalcRoll();
-    float yaw   = MPU6050_CalcYaw(0.02f);
-
-    int16_t ax = MPU6050_GetAccelX();
-    int16_t ay = MPU6050_GetAccelY();
-    int16_t az = MPU6050_GetAccelZ();
-    int16_t gx = MPU6050_GetGyroX();
-    int16_t gy = MPU6050_GetGyroY();
-    int16_t gz = MPU6050_GetGyroZ();
-
     SensorMessage_t msg_out;
     snprintf(msg_out.message, sizeof(msg_out.message),
              "[MPU6050]\r\n"
              " Accel: X=%d Y=%d Z=%d\r\n"
              " Gyro:  X=%d Y=%d Z=%d\r\n"
              " Pitch=%.2f Roll=%.2f Yaw=%.2f\r\n",
-             ax, ay, az, gx, gy, gz, pitch, roll, yaw);
+			 MPU6050_GetAccelX(), MPU6050_GetAccelY(), MPU6050_GetAccelZ(),
+			 MPU6050_GetGyroX(), MPU6050_GetGyroY(), MPU6050_GetGyroZ(),
+			 MPU6050_CalcPitch(), MPU6050_CalcRoll(), MPU6050_CalcYaw(0.02f));
 
     osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
 
@@ -146,7 +137,7 @@ void UltrasonicTask(void *argument)
         //uint32_t d1 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
         uint32_t d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_8);
         //uint32_t d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
-        uint32_t d1=-999, d3=-999;
+        uint32_t d1=9999, d3=9999;
         snprintf(msg_out.message, sizeof(msg_out.message), "D1(LEFT) : %lu cm\r\nD2(MID) : %lu cm\r\nD3(RIGHT) : %lu cm\r\n", d1, d2, d3);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);

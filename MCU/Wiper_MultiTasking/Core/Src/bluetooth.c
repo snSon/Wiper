@@ -16,8 +16,7 @@ extern UART_HandleTypeDef huart2; // debug
 extern uint8_t current_motor_cmd;
 
 static uint8_t rx_byte;
-
-static uint16_t global_motor_speed = 800;  // 기본 속도 600
+static uint16_t global_motor_speed = 800;  // 기본 속도
 
 void Bluetooth_Init(void)
 {
@@ -32,71 +31,45 @@ void Bluetooth_RxCallback(void)
         command[0] = tolower((char)rx_byte);
         Parse_Command(command);  // 단일 문자로 파싱
     }
-
-    // 다음 수신 대기
-    HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+    HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 다음 수신 대기
 }
 
-
+static void SendMotorCommand(char direction, const char* message)
+{
+	xQueueSendFromISR(motorQueueHandle, (uint8_t*)&direction, NULL);
+	HAL_UART_Transmit(&huart2, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
+}
 
 void Parse_Command(const char* cmd)
 {
-	char msgs[64];
-	snprintf(msgs, sizeof(msgs), "[DEBUG] Set speed: %d\r\n", global_motor_speed);
-	HAL_UART_Transmit(&huart2, (uint8_t*)msgs, strlen(msgs), HAL_MAX_DELAY);
-
     char c = cmd[0];
-    uint8_t msg;
+	char debug_msg[64];
+	snprintf(debug_msg, sizeof(debug_msg), "[DEBUG] Set speed: %d\r\n", global_motor_speed);
+	HAL_UART_Transmit(&huart2, (uint8_t*)debug_msg, strlen(debug_msg), HAL_MAX_DELAY);
 
     switch (c)
     {
-    case 'f':
-           msg = 'F';
-           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Forward\r\n", 18, HAL_MAX_DELAY);
-           break;
-       case 'b':
-           msg = 'B';
-           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Backward\r\n", 19, HAL_MAX_DELAY);
-           break;
-       case 'l':
-           msg = 'L';
-           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Left\r\n", 16, HAL_MAX_DELAY);
-           break;
-       case 'r':
-           msg = 'R';
-           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Right\r\n", 17, HAL_MAX_DELAY);
-           break;
-       case 's':
-           msg = 'S';
-           xQueueSendFromISR(motorQueueHandle, &msg, NULL);
-           HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: Stop\r\n", 16, HAL_MAX_DELAY);
-           break;
-        case 'a':
-            global_motor_speed = 500;
-            break;
-        case 'e':
-            global_motor_speed = 650;
-            break;
-        case 'i':
-            global_motor_speed = 800;
-            break;
-        default:
-        {
+	   case 'f': SendMotorCommand('F', "[BLE_CMD]: Forward\r\n"); break;
+	   case 'b': SendMotorCommand('B', "[BLE_CMD]: Backward\r\n"); break;
+	   case 'l': SendMotorCommand('L', "[BLE_CMD]: Left\r\n"); break;
+	   case 'r': SendMotorCommand('R', "[BLE_CMD]: Right\r\n"); break;
+	   case 's': SendMotorCommand('S', "[BLE_CMD]: Stop\r\n"); break;
+
+	   case 'a': global_motor_speed = 500; break;
+	   case 'e': global_motor_speed = 650; break;
+	   case 'i': global_motor_speed = 800; break;
+
+	   default:
+       {
             char err_msg[64];
             snprintf(err_msg, sizeof(err_msg), "[BLE_ERROR] '%s' was not defined\r\n", cmd);
             HAL_UART_Transmit(&huart2, (uint8_t*)err_msg, strlen(err_msg), HAL_MAX_DELAY);
             return;
-        }
-
+       }
     }
 
-    // 속도 설정 메시지 출력 (속도 명령어일 때만)
     if (c == 'a' || c == 'e' || c == 'i')
-    {
+    { // 속도 설정 메시지 출력 (속도 명령어일 때만)
     	switch (current_motor_cmd)
     	{
 			case 'F': Motor_Forward(global_motor_speed); break;
