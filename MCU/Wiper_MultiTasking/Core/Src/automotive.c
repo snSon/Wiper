@@ -21,9 +21,8 @@ extern osMessageQueueId_t uartQueueHandle;
 extern volatile uint32_t ultrasonic_center_distance_cm;
 extern uint16_t current_speed; // 현재 설정된 속도
 
-uint16_t recovery_speed=800; // 복구 속도
+uint16_t recovery_speed=550; // 복구 속도
 LinePosition last_dir = LINE_CENTER; // 마지막 방향 저장 (직진 보정 시 참조)
-
 /*
  * 라인 트레이서 방향에 따른 주행 결정 함수
  * dir : 라인센서로부터 판단된 현재 방향
@@ -60,19 +59,33 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
 
         // 왼쪽 센서만 라인을 감지
         case LINE_LEFT:
-            Motor_Left(current_speed);
-            snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 보정 좌회전\r\n");
+            Motor_Left(550);
+            snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 좌회전\r\n");
             last_dir = LINE_LEFT;
             track_lost_time = INIT_TRACK_LOST_TIME;
             break;
 
         // 우측 센서만 라인을 감지
         case LINE_RIGHT:
-            Motor_Right(current_speed);
-            snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 보정 우회전\r\n");
+            Motor_Right(550);
+            snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 우회전\r\n");
             last_dir = LINE_RIGHT;
             track_lost_time = INIT_TRACK_LOST_TIME;
             break;
+
+        case LINE_LEFT_CENTER:
+        	Motor_Left(SafeSpeed(current_speed*0.6, 550));
+			snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 보정 좌회전\r\n");
+			last_dir = LINE_LEFT;
+			track_lost_time = INIT_TRACK_LOST_TIME;
+			break;
+
+		case LINE_RIGHT_CENTER:
+			Motor_Right(SafeSpeed(current_speed*0.6, 550));
+			snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 보정 우회전\r\n");
+			last_dir = LINE_RIGHT;
+			track_lost_time = INIT_TRACK_LOST_TIME;
+			break;
 
         // 라인을 아예 감지하지 못한 경우 (라인 로스트)
         default:
@@ -80,15 +93,28 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
             if (track_lost_time == INIT_TRACK_LOST_TIME)
                 track_lost_time = xTaskGetTickCount();
 
+               uint8_t left, center, right;
+               ReadLineSensor(&left, &center, &right);
+               LinePosition new_dir = DecideLineDirection(left, center, right);
+
+               if (new_dir != LINE_NONE)
+               {
+                   // 라인 찾았으면 복구 탈출
+                   track_lost_time = INIT_TRACK_LOST_TIME;
+                   snprintf(msg_out->message, sizeof(msg_out->message),
+                            "[Line_Trace] 라인 복구 성공, 주행 재개\r\n");
+                   return; // 복구 탈출
+               }
+
             TickType_t elapsed = xTaskGetTickCount() - track_lost_time;
 
             // 1. 1초 미만이면, 후진 없이 좌/우 회전만 시도
             if (elapsed < pdMS_TO_TICKS(1000))
             {
             	if (last_dir == LINE_LEFT)
-            		Motor_Left(current_speed);
+            		Motor_Left(recovery_speed);
 				else
-					Motor_Right(current_speed);
+					Motor_Right(recovery_speed);
             	 snprintf(msg_out->message, sizeof(msg_out->message),
 							 "[Line_Trace] 라인 로스트 (%.1fs), 회전 복구 시도 중\r\n",
 							 elapsed * 1.0f / configTICK_RATE_HZ);
@@ -97,12 +123,12 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
             // 2. 1~3초 사이라면, 후진 후 회전 시도
             else if (elapsed < max_recovery_duration)
 			{
-				Motor_Backward(current_speed);
+				Motor_Backward(recovery_speed);
 				osDelay(RECOVERY_DELAY_MS);
 				if (last_dir == LINE_LEFT)
-					Motor_Left(current_speed);
+					Motor_Left(recovery_speed);
 				else
-					Motor_Right(current_speed);
+					Motor_Right(recovery_speed);
 				snprintf(msg_out->message, sizeof(msg_out->message),
 						 "[Line_Trace] 라인 로스트 (%.1fs), 후진+회전 복구 시도\r\n",
 						 elapsed * 1.0f / configTICK_RATE_HZ);

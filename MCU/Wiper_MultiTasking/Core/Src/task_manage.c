@@ -23,8 +23,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#define DURATION 2000
-#define LINE_TRACE_PERIOD 500
+#define DURATION 1000
+#define LINE_TRACE_PERIOD 500 // 0.5초
 
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
@@ -134,10 +134,10 @@ void UltrasonicTask(void *argument)
 	SensorMessage_t msg_out;
     for (;;)
     {
-        float d1 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
-        //float d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_4);
-        //float d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
-        float d2=9999.0f, d3=9999.0f;
+//        float d1 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
+        float d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_4);
+//        float d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
+        float d1=9999, d3=9999;
         snprintf(msg_out.message, sizeof(msg_out.message), "D1(LEFT) : %f cm\r\nD2(MID) : %f cm\r\nD3(RIGHT) : %f cm\r\n", d1, d2, d3);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);
