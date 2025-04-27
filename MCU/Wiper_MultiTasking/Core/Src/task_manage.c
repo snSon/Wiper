@@ -30,6 +30,59 @@ extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim4;
 
+/* ------------------ [ 추가된 Task 속성들 ] ------------------ */
+
+// MPU6050 Task 속성
+const osThreadAttr_t mpuTask_attributes = {
+  .name = "mpuTask",
+  .stack_size = 384 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// CDS Task 속성
+const osThreadAttr_t cdsTask_attributes = {
+  .name = "cdsTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// UART Task 속성
+const osThreadAttr_t uartTask_attributes = {
+  .name = "uartTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// Motor Task 속성
+const osThreadAttr_t motorTask_attributes = {
+  .name = "motorTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// Ultrasonic Task 속성
+const osThreadAttr_t ultrasonicTask_attributes = {
+  .name = "ultrasonicTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// SPI Task 속성
+const osThreadAttr_t spiTask_attributes = {
+  .name = "spiTask",
+  .stack_size = 192 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// LineTracer Task 속성
+const osThreadAttr_t lineTracerTask_attributes = {
+  .name = "lineTracerTask",
+  .stack_size = 384 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+/* ------------------------------------------------------------ */
+
 osThreadId_t mpuTaskHandle;
 osThreadId_t cdsTaskHandle;
 osThreadId_t lineTracerTaskHandle;

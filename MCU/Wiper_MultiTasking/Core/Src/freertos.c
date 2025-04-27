@@ -39,57 +39,6 @@ extern uint8_t current_motor_cmd;
 /* USER CODE BEGIN Variables */
 /* USER CODE END Variables */
 
-/* USER CODE BEGIN RTOS_THREADS */
-/* MPU6050 태스크 속성 */
-const osThreadAttr_t mpuTask_attributes = {
-  .name = "mpuTask",
-  .stack_size = 384 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* CDS 태스크 속성 */
-const osThreadAttr_t cdsTask_attributes = {
-  .name = "cdsTask",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* UARTTask 속성 */
-const osThreadAttr_t uartTask_attributes = {
-  .name = "uartTask",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* MotorTask 속성 */
-const osThreadAttr_t motorTask_attributes = {
-  .name = "motorTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* 초음파 태스크 속성 */
-const osThreadAttr_t ultrasonicTask_attributes = {
-  .name = "ultrasonicTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* SPI 통신 태스크 속성 */
-const osThreadAttr_t spiTask_attributes = {
-  .name = "spiTask",
-  .stack_size = 192 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* 라인트레이서 태스크 속성 */
-const osThreadAttr_t lineTracerTask_attributes = {
-  .name = "lineTracerTask",
-  .stack_size = 384 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-/* USER CODE END RTOS_THREADS */
-
 /* Private function prototypes -----------------------------------------------*/
 void MX_FREERTOS_Init(void);
 

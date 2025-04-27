@@ -30,6 +30,15 @@ extern QueueHandle_t motorQueueHandle;     // 모터 명령 큐
 extern osMessageQueueId_t uartQueueHandle; // 센서 로그 전용
 extern uint8_t current_motor_cmd;
 
+// task_attributes
+extern const osThreadAttr_t mpuTask_attributes;
+extern const osThreadAttr_t cdsTask_attributes;
+extern const osThreadAttr_t uartTask_attributes;
+extern const osThreadAttr_t motorTask_attributes;
+extern const osThreadAttr_t ultrasonicTask_attributes;
+extern const osThreadAttr_t spiTask_attributes;
+extern const osThreadAttr_t lineTracerTask_attributes;
+
 // Task 함수 선언
 void StartMPUTask(void *argument);
 void StartCDSTask(void *argument);
