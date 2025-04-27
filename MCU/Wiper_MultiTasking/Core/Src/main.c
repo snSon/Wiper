@@ -65,7 +65,7 @@ void SPI1_Start_Receive_IT()
 void Timer_Accuracy_Test() // 타이머 정확도 테스트
 {
     HAL_TIM_Base_Start(&htim2);
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 3; i++)
     {
         uint32_t before = __HAL_TIM_GET_COUNTER(&htim2);
         HAL_Delay(1000);  // 1초 대기

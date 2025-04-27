@@ -111,24 +111,6 @@ void SensorLogPrinter(const char* msg)
 }
 /* USER CODE END FunctionPrototypes */
 
-/* Function implementing the defaultTask thread. */
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-  /* USER CODE BEGIN StartDefaultTask */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartDefaultTask */
-}
-
 /**
   * @brief  FreeRTOS Initialization
   * @retval None
@@ -160,7 +142,7 @@ void MX_FREERTOS_Init(void)
   osThreadNew(StartMotorTask, NULL, &motorTask_attributes);
   ultrasonicTaskHandle  = osThreadNew(UltrasonicTask, NULL, &ultrasonicTask_attributes);
   spiTaskHandle         = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
-  // lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes); // 필요시 활성화
+  //lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes); // 필요시 활성화
 
   /* USER CODE END init */
 }

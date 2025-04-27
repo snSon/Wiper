@@ -24,7 +24,7 @@
 #include <stdio.h>
 
 #define DURATION 1000
-#define LINE_TRACE_PERIOD 50 // 0.5초
+#define LINE_TRACE_PERIOD 250 // 0.25초
 
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
@@ -42,18 +42,6 @@ osMessageQueueId_t uartQueueHandle;
 uint8_t current_motor_cmd = 'S'; // BLE 용
 volatile uint32_t ultrasonic_center_distance_cm = 1000;  // 기본값: 멀리 있음
 extern uint16_t current_speed;
-
-static LinePosition last_dir = LINE_CENTER;
-
-typedef enum
-{
-	CAR_STOP = 0,
-	CAR_FORWARD,
-	CAR_LEFT,
-	CAR_RIGHT
-} CarState_t;
-
-static CarState_t last_valid_cmd = CAR_STOP;
 
 void StartMPUTask(void *argument)
 {

@@ -14,12 +14,15 @@
 #include <stdbool.h>
 
 extern QueueHandle_t motorQueueHandle;
-extern UART_HandleTypeDef huart2; // debug
+extern UART_HandleTypeDef huart2;
 extern uint8_t current_motor_cmd;
 extern volatile uint32_t ultrasonic_center_distance_cm;
 
 static uint8_t rx_byte;
-static uint16_t global_motor_speed = 550;  // 기본 속도
+static uint16_t global_motor_speed = 700;  // 기본 속도
+
+static bool obstacle_detected = false;      // 장애물 감지 상태 플래그
+static uint8_t last_motor_command = 'S';
 
 void Bluetooth_Init(void)
 {
@@ -37,6 +40,24 @@ void Bluetooth_RxCallback(void)
     HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 다음 수신 대기
 }
 
+static void SendMotorCommand(char direction, const char* message)
+{
+	if (!obstacle_detected)
+	{
+		// 장애물이 없으면 명령어 정상 실행
+		xQueueSendFromISR(motorQueueHandle, (uint8_t*)&direction, NULL);
+		last_motor_command = direction; // 정상 동작 명령 저장
+		HAL_UART_Transmit(&huart2, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
+	}
+	else
+	{
+		// 장애물 있으면 무조건 정지
+		uint8_t stop_cmd = 'S';
+		xQueueSendFromISR(motorQueueHandle, &stop_cmd, NULL);
+		HAL_UART_Transmit(&huart2, (uint8_t*)"[Obstacle] 장애물 감지, 강제 정지\r\n", strlen("[Obstacle] 장애물 감지, 강제 정지\r\n"), HAL_MAX_DELAY);
+	}
+}
+
 void Parse_Command(const char* cmd)
 {
     char c = cmd[0];
@@ -46,11 +67,11 @@ void Parse_Command(const char* cmd)
 
     switch (c)
     {
-	   case 'f': Motor_Forward(global_motor_speed); break;
-	   case 'b': Motor_Backward(global_motor_speed); break;
-	   case 'l': Motor_Left(global_motor_speed); break;
-	   case 'r': Motor_Right(global_motor_speed); break;
-	   case 's': Motor_Stop(); break;
+	   case 'f': SendMotorCommand('F', "[BLE_CMD]: Forward\r\n"); break;
+	   case 'b': SendMotorCommand('B', "[BLE_CMD]: Backward\r\n"); break;
+	   case 'l': SendMotorCommand('L', "[BLE_CMD]: Left\r\n"); break;
+	   case 'r': SendMotorCommand('R', "[BLE_CMD]: Right\r\n"); break;
+	   case 's': SendMotorCommand('S', "[BLE_CMD]: Stop\r\n"); break;
 
 	   case 'a': global_motor_speed = 500; break;
 	   case 'e': global_motor_speed = 650; break;
@@ -83,6 +104,36 @@ void Parse_Command(const char* cmd)
         char ok_msg[64];
         snprintf(ok_msg, sizeof(ok_msg), "[BLE] Speed set: %d (CMD: %c)\r\n", global_motor_speed, c);
         HAL_UART_Transmit(&huart2, (uint8_t*)ok_msg, strlen(ok_msg), HAL_MAX_DELAY);
+    }
+}
+// 블루투스 기반 초음파 센서 정지
+void Bluetooth_CheckObstacle(void)
+{
+
+    uint32_t dist = ultrasonic_center_distance_cm;
+    if (dist < 30)
+    {
+        if (!obstacle_detected)
+        {
+            // 장애물 새로 감지
+            obstacle_detected = true;
+            uint8_t stop_cmd = 'S';
+            xQueueSendFromISR(motorQueueHandle, &stop_cmd, NULL);
+            HAL_UART_Transmit(&huart2, (uint8_t*)"[Obstacle] 장애물 감지, 정지\r\n", strlen("[Obstacle] 장애물 감지, 정지\r\n"), HAL_MAX_DELAY);
+        }
+    }
+    else
+    {
+        if (obstacle_detected)
+        {
+            // 장애물 해제
+            obstacle_detected = false;
+            if (last_motor_command != 'S')
+            {
+                xQueueSendFromISR(motorQueueHandle, &last_motor_command, NULL);
+                HAL_UART_Transmit(&huart2, (uint8_t*)"[Obstacle] 장애물 해제, 주행 재개\r\n", strlen("[Obstacle] 장애물 해제, 주행 재개\r\n"), HAL_MAX_DELAY);
+            }
+        }
     }
 }
 
