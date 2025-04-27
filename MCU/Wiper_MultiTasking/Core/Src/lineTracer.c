@@ -14,17 +14,17 @@
 #include <stdio.h>
 
 // 센서 입력 핀 정의
-#define SENSOR_LEFT_PIN     GPIO_PIN_4
+#define SENSOR_LEFT_PIN     GPIO_PIN_5 // 실제는 x4
 #define SENSOR_LEFT_PORT    GPIOB
 
-#define SENSOR_CENTER_LEFT_PIN   GPIO_PIN_13
-#define SENSOR_CENTER_LEFT_PORT  GPIOC
+#define SENSOR_CENTER_LEFT_PIN   GPIO_PIN_4
+#define SENSOR_CENTER_LEFT_PORT  GPIOB
 
-#define SENSOR_CENTER_RIGHT_PIN    GPIO_PIN_5
-#define SENSOR_CENTER_RIGHT_PORT   GPIOB
+#define SENSOR_CENTER_RIGHT_PIN    GPIO_PIN_2 // 실제는 x1
+#define SENSOR_CENTER_RIGHT_PORT   GPIOD
 
-#define SENSOR_RIGHT_PIN    GPIO_PIN_2
-#define SENSOR_RIGHT_PORT   GPIOD
+#define SENSOR_RIGHT_PIN    GPIO_PIN_13
+#define SENSOR_RIGHT_PORT   GPIOC
 
 
 void ReadLineSensor(uint8_t* left, uint8_t* center, uint8_t* right)
@@ -43,8 +43,8 @@ void ReadLineSensor(uint8_t* left, uint8_t* center, uint8_t* right)
 LinePosition DecideLineDirection(uint8_t left, uint8_t center, uint8_t right)
 {
 	if (left && center && right) return LINE_ALL;
-	if (left && center && !right) return LINE_LEFT;     // LEFT 우선
-	if (right && center && !left) return LINE_RIGHT;    // RIGHT 우선
+	if (left && center && !right) return LINE_CENTER;
+	if (right && center && !left) return LINE_CENTER;
 	if (left && !center && !right) return LINE_LEFT;
 	if (right && !center && !left) return LINE_RIGHT;
 	if (center && !left && !right) return LINE_CENTER;

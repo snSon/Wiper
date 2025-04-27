@@ -135,7 +135,7 @@ void MX_FREERTOS_Init(void)
   cdsTaskHandle = osThreadNew(StartCDSTask, NULL, &cdsTask_attributes);
   osThreadNew(StartUARTTask, NULL, &uartTask_attributes);
   osThreadNew(StartMotorTask, NULL, &motorTask_attributes);
-  ultrasonicTaskHandle = osThreadNew(UltrasonicTask, NULL, &ultrasonicTask_attributes);
+  //ultrasonicTaskHandle = osThreadNew(UltrasonicTask, NULL, &ultrasonicTask_attributes);
   spiTaskHandle = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
   lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes);
   /* USER CODE END init */

@@ -16,7 +16,7 @@ extern UART_HandleTypeDef huart2; // debug
 extern uint8_t current_motor_cmd;
 
 static uint8_t rx_byte;
-static uint16_t global_motor_speed = 800;  // 기본 속도
+static uint16_t global_motor_speed = 550;  // 기본 속도
 
 void Bluetooth_Init(void)
 {
@@ -59,6 +59,11 @@ void Parse_Command(const char* cmd)
 	   case 'e': global_motor_speed = 650; break;
 	   case 'i': global_motor_speed = 800; break;
 
+	   case 'x':
+			HAL_UART_Transmit(&huart2, (uint8_t*)"[BLE_CMD]: MCU Reset\r\n", strlen("[BLE_CMD]: MCU Reset\r\n"), HAL_MAX_DELAY);
+			osDelay(100); // 전송 시간 확보
+			NVIC_SystemReset();  // 리셋
+			break;
 	   default:
        {
             char err_msg[64];
