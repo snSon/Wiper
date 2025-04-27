@@ -140,6 +140,16 @@ void UltrasonicTask(void *argument)
         float d1=9999, d3=9999;
         // 초음파 거리값 저장
         ultrasonic_center_distance_cm = (uint32_t)d2;
+
+        if(d2 < 40.0){
+        	Motor_Stop();
+        }
+        else{
+        	uint16_t speed = Bluetooth_GetSpeed();
+        	Motor_Forward(speed);
+        }
+
+
         snprintf(msg_out.message, sizeof(msg_out.message), "D1(LEFT) : %f cm\r\nD2(MID) : %f cm\r\nD3(RIGHT) : %f cm\r\n", d1, d2, d3);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);
