@@ -18,9 +18,7 @@ typedef enum {
 	LINE_LEFT_CENTER,
 	LINE_RIGHT_CENTER,
 	LINE_RIGHT,
-	LINE_ALL,
-	LINE_LEFT_CENTER,
-	LINE_RIGHT_CENTER
+	LINE_ALL
 } LinePosition;
 
 void ReadLineSensor(uint8_t* left, uint8_t* center, uint8_t* right);

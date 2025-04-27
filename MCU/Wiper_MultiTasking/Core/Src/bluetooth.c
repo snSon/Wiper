@@ -5,18 +5,24 @@
 #include "main.h"
 #include "cmsis_os2.h"
 #include "motor.h"
+#include "ultrasonic.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 extern QueueHandle_t motorQueueHandle;
 extern UART_HandleTypeDef huart2; // debug
 extern uint8_t current_motor_cmd;
+extern volatile uint32_t ultrasonic_center_distance_cm;
 
 static uint8_t rx_byte;
 static uint16_t global_motor_speed = 550;  // 기본 속도
+
+static bool obstacle_detected = false;      // 장애물 감지 상태 플래그
+static uint8_t last_motor_command = 'S';
 
 void Bluetooth_Init(void)
 {
@@ -36,8 +42,20 @@ void Bluetooth_RxCallback(void)
 
 static void SendMotorCommand(char direction, const char* message)
 {
-	xQueueSendFromISR(motorQueueHandle, (uint8_t*)&direction, NULL);
-	HAL_UART_Transmit(&huart2, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
+	if (!obstacle_detected)
+	{
+		// 장애물이 없으면 명령어 정상 실행
+		xQueueSendFromISR(motorQueueHandle, (uint8_t*)&direction, NULL);
+		last_motor_command = direction; // 정상 동작 명령 저장
+		HAL_UART_Transmit(&huart2, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
+	}
+	else
+	{
+		// 장애물 있으면 무조건 정지
+		uint8_t stop_cmd = 'S';
+		xQueueSendFromISR(motorQueueHandle, &stop_cmd, NULL);
+		HAL_UART_Transmit(&huart2, (uint8_t*)"[Obstacle] 장애물 감지, 강제 정지\r\n", strlen("[Obstacle] 장애물 감지, 강제 정지\r\n"), HAL_MAX_DELAY);
+	}
 }
 
 void Parse_Command(const char* cmd)
@@ -88,7 +106,36 @@ void Parse_Command(const char* cmd)
         HAL_UART_Transmit(&huart2, (uint8_t*)ok_msg, strlen(ok_msg), HAL_MAX_DELAY);
     }
 }
+// 블루투스
+void Bluetooth_CheckObstacle(void)
+{
+    uint32_t dist = ultrasonic_center_distance_cm;
 
+    if (dist < 30)
+    {
+        if (!obstacle_detected)
+        {
+            // 장애물 새로 감지
+            obstacle_detected = true;
+            uint8_t stop_cmd = 'S';
+            xQueueSendFromISR(motorQueueHandle, &stop_cmd, NULL);
+            HAL_UART_Transmit(&huart2, (uint8_t*)"[Obstacle] 장애물 감지, 정지\r\n", strlen("[Obstacle] 장애물 감지, 정지\r\n"), HAL_MAX_DELAY);
+        }
+    }
+    else
+    {
+        if (obstacle_detected)
+        {
+            // 장애물 해제
+            obstacle_detected = false;
+            if (last_motor_command != 'S')
+            {
+                xQueueSendFromISR(motorQueueHandle, &last_motor_command, NULL);
+                HAL_UART_Transmit(&huart2, (uint8_t*)"[Obstacle] 장애물 해제, 주행 재개\r\n", strlen("[Obstacle] 장애물 해제, 주행 재개\r\n"), HAL_MAX_DELAY);
+            }
+        }
+    }
+}
 
 uint16_t Bluetooth_GetSpeed(void)
 {

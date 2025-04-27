@@ -96,6 +96,12 @@ const osThreadAttr_t lineTracerTask_attributes = {
   .stack_size = 384 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+// 블루투스
+const osThreadAttr_t bluetoothTask_attributes = {
+  .name = "bluetoothTask",
+  .stack_size = 256 * 4, // 스택 여유 충분히 줘
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE END RTOS_THREADS */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,6 +114,15 @@ void SensorLogPrinter(const char* msg)
     char buf[128];
     snprintf(buf, sizeof(buf), "[SENSOR LOG] %s\r\n", msg);
     HAL_UART_Transmit(&huart2, (uint8_t*)buf, strlen(buf), HAL_MAX_DELAY);
+}
+
+void StartBluetoothTask(void *argument)
+{
+    for(;;)
+    {
+        Bluetooth_CheckObstacle();
+        osDelay(100); // 100ms마다 초음파 거리 감시
+    }
 }
 /* USER CODE END FunctionPrototypes */
 
@@ -154,12 +169,13 @@ void MX_FREERTOS_Init(void)
   HAL_TIM_Base_Start(&htim4);
 
   // ---- 태스크 생성 ----
-  mpuTaskHandle         = osThreadNew(StartMPUTask, NULL, &mpuTask_attributes);
-  cdsTaskHandle         = osThreadNew(StartCDSTask, NULL, &cdsTask_attributes);
+  //mpuTaskHandle         = osThreadNew(StartMPUTask, NULL, &mpuTask_attributes);
+  // cdsTaskHandle         = osThreadNew(StartCDSTask, NULL, &cdsTask_attributes);
   osThreadNew(StartUARTTask, NULL, &uartTask_attributes);
   osThreadNew(StartMotorTask, NULL, &motorTask_attributes);
+  osThreadNew(StartBluetoothTask, NULL, &bluetoothTask_attributes);
   ultrasonicTaskHandle  = osThreadNew(UltrasonicTask, NULL, &ultrasonicTask_attributes);
-  spiTaskHandle         = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
+  // spiTaskHandle         = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
   // lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes); // 필요시 활성화
 
   /* USER CODE END init */

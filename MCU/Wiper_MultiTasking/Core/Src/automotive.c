@@ -13,6 +13,7 @@
 #include "cmsis_os.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define OBSTACLE_DIST 30 // cm
 #define RECOVERY_DELAY_MS 300
@@ -32,17 +33,33 @@ LinePosition last_dir = LINE_CENTER; // 마지막 방향 저장 (직진 보정 �
 void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
 {
     static TickType_t track_lost_time = 0;
+    static bool obstacle_detected = false; // 장애물 감지 여부
     const TickType_t max_recovery_duration = pdMS_TO_TICKS(3000); // 3 sec
     uint32_t dist = ultrasonic_center_distance_cm;
 
     // 장애물이 앞에 있을 경우 정지
     if (dist < OBSTACLE_DIST)
     {
-        Motor_Stop();
-        snprintf(msg_out->message, sizeof(msg_out->message),
-                 "[Line] 장애물 감지 (%lu cm), 정지\r\n", dist);
-        track_lost_time = INIT_TRACK_LOST_TIME;
-        return;
+    	if (!obstacle_detected)
+		{
+			// 처음 장애물 발견한 경우만 정지
+			Motor_Stop();
+			snprintf(msg_out->message, sizeof(msg_out->message),
+					 "[Line] 장애물 감지 (%lu cm), 정지\r\n", dist);
+			obstacle_detected = true; // 감지 상태 기록
+		}
+		return; // 장애물 있을 때는 더 진행 안 함
+    }
+    else
+    {
+        if (obstacle_detected)
+        {
+            // 장애물이 사라진 경우 -> 다시 출발
+            Motor_Forward(current_speed);
+            snprintf(msg_out->message, sizeof(msg_out->message),
+                     "[Line] 장애물 해제, 주행 재개\r\n");
+            obstacle_detected = false; // 감지 상태 해제
+        }
     }
 
     // 방향에 따른 주행 동작 결정

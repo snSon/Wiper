@@ -138,6 +138,8 @@ void UltrasonicTask(void *argument)
         float d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_4);
 //        float d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
         float d1=9999, d3=9999;
+        // 초음파 거리값 저장
+        ultrasonic_center_distance_cm = (uint32_t)d2;
         snprintf(msg_out.message, sizeof(msg_out.message), "D1(LEFT) : %f cm\r\nD2(MID) : %f cm\r\nD3(RIGHT) : %f cm\r\n", d1, d2, d3);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);
