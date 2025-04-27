@@ -126,19 +126,25 @@ void UltrasonicTask(void *argument)
         float d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_4);
 //        float d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
         float d1=9999, d3=9999;
-        // 초음파 거리값 저장
-        ultrasonic_center_distance_cm = (uint32_t)d2;
 
-        if(d2 < 40.0){
+        ultrasonic_center_distance_cm = (uint32_t)d2; // 초음파 거리
+
+        if(d2 < 40.0)
+        {
         	Motor_Stop();
         }
-        else{
+        else
+        {
         	uint16_t speed = Bluetooth_GetSpeed();
         	Motor_Forward(speed);
         }
 
 
-        snprintf(msg_out.message, sizeof(msg_out.message), "D1(LEFT) : %f cm\r\nD2(MID) : %f cm\r\nD3(RIGHT) : %f cm\r\n", d1, d2, d3);
+        snprintf(msg_out.message, sizeof(msg_out.message),
+        		"Dist1: %.2f cm\r\n"
+        		"Dist2: %.2f cm\r\n"
+        		"Dist3: %.2f cm\r\n",
+				d1, d2, d3);
         osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
         osDelay(DURATION);
     }
@@ -160,11 +166,13 @@ void StartSPITask(void *argument)
             uint8_t car       =  rx_val       & 0x01;
 
             Motor_Forward(600);
-            if(human || red_light || car){
+            if(human || red_light || car)
+            {
             	Motor_Stop();
             	snprintf(msg, sizeof(msg), "[SPI 수신] Stop - 사람:%d, 신호:%d, 차량:%d\r\n", human, red_light, car);
             }
-            else{
+            else
+            {
             	snprintf(msg, sizeof(msg), "[SPI 수신] 사람:%d, 신호:%d, 차량:%d\r\n", human, red_light, car);
             }
         }
@@ -177,8 +185,6 @@ void StartSPITask(void *argument)
         osDelay(100); // 100ms 주기
     }
 }
-
-
 
 void StartLineTracerTask(void *argument)
 {

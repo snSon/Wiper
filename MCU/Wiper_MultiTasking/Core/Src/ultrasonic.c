@@ -1,7 +1,7 @@
 #include "ultrasonic.h"
 #include "tim.h"
-#include "usart.h"    // ★ 추가
-#include <string.h>   // ★ 추가
+#include "usart.h"
+#include <string.h>
 
 extern TIM_HandleTypeDef htim4;
 
@@ -30,7 +30,8 @@ float read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
     // Wait for echo start
     uint32_t timeout = TIMEOUT_COUNT;
     while (HAL_GPIO_ReadPin(echoPort, echoPin) == GPIO_PIN_RESET && timeout--);
-    if (timeout == 0) {
+    if (timeout == 0)
+    {
         const char* fail_msg = "ECHO start timeout\r\n";
         HAL_UART_Transmit(&huart2, (uint8_t*)fail_msg, strlen(fail_msg), HAL_MAX_DELAY);
         return 0;
@@ -41,7 +42,8 @@ float read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
     // Wait for echo end
     timeout = TIMEOUT_COUNT;
     while (HAL_GPIO_ReadPin(echoPort, echoPin) == GPIO_PIN_SET && timeout--);
-    if (timeout == 0) {
+    if (timeout == 0)
+    {
         const char* fail_msg2 = "ECHO end timeout\r\n";
         HAL_UART_Transmit(&huart2, (uint8_t*)fail_msg2, strlen(fail_msg2), HAL_MAX_DELAY);
         return 0;
@@ -52,10 +54,5 @@ float read_ultrasonic_distance_cm(GPIO_TypeDef* trigPort, uint16_t trigPin,
 
     // Calculate distance
     float distance_cm = (((float)duration * SPEED_OF_SOUND_CM_PER_US) / 2.0f);
-
-    // 성공 출력
-    const char* ok_msg = "ECHO received\r\n";
-    HAL_UART_Transmit(&huart2, (uint8_t*)ok_msg, strlen(ok_msg), HAL_MAX_DELAY);
-
     return distance_cm;
 }

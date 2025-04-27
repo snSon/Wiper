@@ -39,14 +39,6 @@ extern uint8_t current_motor_cmd;
 /* USER CODE BEGIN Variables */
 /* USER CODE END Variables */
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
 /* USER CODE BEGIN RTOS_THREADS */
 /* MPU6050 태스크 속성 */
 const osThreadAttr_t mpuTask_attributes = {

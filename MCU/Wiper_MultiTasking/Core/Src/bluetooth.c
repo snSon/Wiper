@@ -42,20 +42,8 @@ void Bluetooth_RxCallback(void)
 
 static void SendMotorCommand(char direction, const char* message)
 {
-	if (!obstacle_detected)
-	{
-		// 장애물이 없으면 명령어 정상 실행
-		xQueueSendFromISR(motorQueueHandle, (uint8_t*)&direction, NULL);
-		last_motor_command = direction; // 정상 동작 명령 저장
-		HAL_UART_Transmit(&huart2, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
-	}
-	else
-	{
-		// 장애물 있으면 무조건 정지
-		uint8_t stop_cmd = 'S';
-		xQueueSendFromISR(motorQueueHandle, &stop_cmd, NULL);
-		HAL_UART_Transmit(&huart2, (uint8_t*)"[Obstacle] 장애물 감지, 강제 정지\r\n", strlen("[Obstacle] 장애물 감지, 강제 정지\r\n"), HAL_MAX_DELAY);
-	}
+	xQueueSendFromISR(motorQueueHandle, (uint8_t*)&direction, NULL);
+	HAL_UART_Transmit(&huart2, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
 }
 
 void Parse_Command(const char* cmd)
