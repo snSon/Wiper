@@ -80,14 +80,38 @@ try:
         red_light = 0
         car = 0
 
-        for cls_id in detected_classes:
+        for *box, conf, cls in predictions:
+            cls_id = int(cls)
             label = model.names[cls_id]
             if label == 'person':
                 human = 1
-            elif label in ['traffic light', 'stop sign']:
-                red_light = 1
             elif label in ['car', 'truck', 'bus']:
                 car = 1
+            elif label == 'traffic light':
+                # 박스 좌표 추출
+                x1, y1, x2, y2 = map(int, box)
+                traffic_crop = dehazed[y1:y2, x1:x2]
+
+                if traffic_crop.size == 0:
+                    continue
+
+                hsv = cv2.cvtColor(traffic_crop, cv2.COLOR_BGR2HSV)
+
+                # 빨간색 HSV 범위
+                lower_red1 = np.array([0, 100, 100])
+                upper_red1 = np.array([10, 255, 255])
+                lower_red2 = np.array([160, 100, 100])
+                upper_red2 = np.array([179, 255, 255])
+
+                mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+                mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+                red_mask = cv2.bitwise_or(mask1, mask2)
+
+                red_ratio = cv2.countNonZero(red_mask) / (red_mask.shape[0] * red_mask.shape[1])
+
+                if red_ratio > 0.1:
+                    red_light = 1
+                    print("red light detected")
 
         # === 값이 바뀌었을 경우 SPI 통신 ===
         if (human, red_light, car) != (prev_human, prev_red, prev_car):
