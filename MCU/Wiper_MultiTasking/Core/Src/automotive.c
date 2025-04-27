@@ -21,7 +21,7 @@ extern osMessageQueueId_t uartQueueHandle;
 extern volatile uint32_t ultrasonic_center_distance_cm;
 extern uint16_t current_speed; // 현재 설정된 속도
 
-uint16_t recovery_speed=550; // 복구 속도
+uint16_t recovery_speed=800; // 복구 속도
 LinePosition last_dir = LINE_CENTER; // 마지막 방향 저장 (직진 보정 시 참조)
 /*
  * 라인 트레이서 방향에 따른 주행 결정 함수
@@ -51,7 +51,7 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
     	// 직진 계열
         case LINE_ALL:
         case LINE_CENTER:
-        	Motor_Forward(current_speed);
+        	Motor_Forward(700);
         	snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 직진\r\n");
             last_dir = LINE_CENTER; // 방향 갱신
             track_lost_time = INIT_TRACK_LOST_TIME;
@@ -59,7 +59,7 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
 
         // 왼쪽 센서만 라인을 감지
         case LINE_LEFT:
-            Motor_Left(550);
+            Motor_Left(700);
             snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 좌회전\r\n");
             last_dir = LINE_LEFT;
             track_lost_time = INIT_TRACK_LOST_TIME;
@@ -67,14 +67,14 @@ void LineTracerDriveDecision(LinePosition dir, SensorMessage_t* msg_out)
 
         // 우측 센서만 라인을 감지
         case LINE_RIGHT:
-            Motor_Right(550);
+            Motor_Right(700);
             snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 우회전\r\n");
             last_dir = LINE_RIGHT;
             track_lost_time = INIT_TRACK_LOST_TIME;
             break;
 
         case LINE_LEFT_CENTER:
-        	Motor_Left(SafeSpeed(current_speed*0.6, 550));
+        	Motor_Left(SafeSpeed(current_speed*0.6, 700));
 			snprintf(msg_out->message, sizeof(msg_out->message), "[Line_Trace] 보정 좌회전\r\n");
 			last_dir = LINE_LEFT;
 			track_lost_time = INIT_TRACK_LOST_TIME;

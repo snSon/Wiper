@@ -24,7 +24,7 @@
 #include <stdio.h>
 
 #define DURATION 1000
-#define LINE_TRACE_PERIOD 500 // 0.5초
+#define LINE_TRACE_PERIOD 50 // 0.5초
 
 extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;

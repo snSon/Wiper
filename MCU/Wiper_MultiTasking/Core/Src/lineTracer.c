@@ -26,7 +26,6 @@
 #define SENSOR_RIGHT_PIN    GPIO_PIN_13
 #define SENSOR_RIGHT_PORT   GPIOC
 
-
 void ReadLineSensor(uint8_t* left, uint8_t* center, uint8_t* right)
 {
     uint8_t left_raw   = HAL_GPIO_ReadPin(SENSOR_LEFT_PORT, SENSOR_LEFT_PIN);
@@ -43,8 +42,8 @@ void ReadLineSensor(uint8_t* left, uint8_t* center, uint8_t* right)
 LinePosition DecideLineDirection(uint8_t left, uint8_t center, uint8_t right)
 {
 	if (left && center && right) return LINE_ALL;
-	if (left && center && !right) return LINE_CENTER;
-	if (right && center && !left) return LINE_CENTER;
+	if (left && center && !right) return LINE_LEFT_CENTER;
+	if (right && center && !left) return LINE_RIGHT_CENTER;
 	if (left && !center && !right) return LINE_LEFT;
 	if (right && !center && !left) return LINE_RIGHT;
 	if (center && !left && !right) return LINE_CENTER;
