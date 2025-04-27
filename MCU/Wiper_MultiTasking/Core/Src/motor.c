@@ -63,22 +63,6 @@ void Motor_Forward(uint16_t speed)
     current_speed = speed;
 }
 
-//void Motor_Forward(uint16_t speed)
-//{
-//    SetMotorDirection(GPIO_PIN_RESET, GPIO_PIN_SET, GPIO_PIN_RESET, GPIO_PIN_SET);
-//
-//    // 왼쪽 먼저 출력
-//    __HAL_TIM_SET_COMPARE(&LEFT_PWM_TIMER, LEFT_PWM_CHANNEL, speed);
-//
-//    // 300ms 대기
-//    osDelay(100);
-//
-//    // 오른쪽 출력
-//    __HAL_TIM_SET_COMPARE(&RIGHT_PWM_TIMER, RIGHT_PWM_CHANNEL, speed);
-//
-//    current_speed = speed;
-//}
-
 // 후진
 void Motor_Backward(uint16_t speed)
 {
@@ -129,11 +113,3 @@ uint16_t SafeSpeed(uint16_t desired, uint16_t min_required)
 {
 	return (desired < min_required) ? min_required : desired;
 }
-
-// 왼쪽/오른쪽 모터 속도를 따로 설정하는 함수
-void Motor_SetSpeed(uint16_t left_speed, uint16_t right_speed)
-{
-    __HAL_TIM_SET_COMPARE(&LEFT_PWM_TIMER, LEFT_PWM_CHANNEL, left_speed);
-    __HAL_TIM_SET_COMPARE(&RIGHT_PWM_TIMER, RIGHT_PWM_CHANNEL, right_speed);
-}
-
