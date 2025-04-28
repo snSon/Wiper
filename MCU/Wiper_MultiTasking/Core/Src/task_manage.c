@@ -30,6 +30,8 @@ extern UART_HandleTypeDef huart2;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim4;
 
+float dt = DURATION / 1000.0f; // ms -> sec 변환
+
 /* ------------------ [ 추가된 Task 속성들 ] ------------------ */
 
 // MPU6050 Task 속성
@@ -106,16 +108,16 @@ void StartMPUTask(void *argument)
     SensorMessage_t msg_out;
     snprintf(msg_out.message, sizeof(msg_out.message),
              "[MPU6050]\r\n"
-             " Accel: X=%d Y=%d Z=%d\r\n"
-             " Gyro:  X=%d Y=%d Z=%d\r\n"
+             " Accel: X=%.2f Y=%.2f Z=%.2f\r\n"
+             " Gyro:  X=%.2f Y=%.2f Z=%.2f\r\n"
              " Pitch=%.2f Roll=%.2f Yaw=%.2f\r\n",
 			 MPU6050_GetAccelX(), MPU6050_GetAccelY(), MPU6050_GetAccelZ(),
 			 MPU6050_GetGyroX(), MPU6050_GetGyroY(), MPU6050_GetGyroZ(),
-			 MPU6050_CalcPitch(), MPU6050_CalcRoll(), MPU6050_CalcYaw(0.02f));
+			 MPU6050_CalcPitch(), MPU6050_CalcRoll(), MPU6050_CalcYaw(dt));
 
     osMessageQueuePut(uartQueueHandle, &msg_out, 0, 0);
 
-    osDelay(DURATION);
+    osDelay(DURATION); // DURATION:1000
   }
 }
 
@@ -178,7 +180,7 @@ void UltrasonicTask(void *argument)
 //        float d1 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_7, GPIOC, GPIO_PIN_6);
         float d2 = read_ultrasonic_distance_cm(GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_4);
 //        float d3 = read_ultrasonic_distance_cm(GPIOC, GPIO_PIN_9, GPIOB, GPIO_PIN_2);
-        float d1=9999, d3=9999;
+        float d1=23.52, d3=46.15;
 
         ultrasonic_center_distance_cm = (uint32_t)d2; // 초음파 거리
 

@@ -83,7 +83,7 @@ void MX_FREERTOS_Init(void)
   osThreadNew(StartMotorTask, NULL, &motorTask_attributes);
   ultrasonicTaskHandle  = osThreadNew(UltrasonicTask, NULL, &ultrasonicTask_attributes);
   spiTaskHandle         = osThreadNew(StartSPITask, NULL, &spiTask_attributes);
-  //lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes); // 필요시 활성화
+  lineTracerTaskHandle = osThreadNew(StartLineTracerTask, NULL, &lineTracerTask_attributes); // 필요시 활성화
 
   /* USER CODE END init */
 }
