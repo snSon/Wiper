@@ -1,14 +1,37 @@
 # Custom YOLOv5 Object Detection
 
-본 레포지토리는 [YOLOv5](https://github.com/ultralytics/yolov5)를 기반으로 객체 탐지 기능에 특화된 경량화 버전입니다.
+This repository is a lightweight and Jetson-optimized version of [YOLOv5](https://github.com/ultralytics/yolov5), specialized for object detection tasks in edge AI environments.
 
-## 주요 기능
-- `detect.py`: 객체 탐지 실행
-- `val.py`: 검증 수행
-- `export.py`: 모델 변환 (.onnx, .torchscript 등)
-- `convert_model.sh`: ONNX → TensorRT 엔진 자동 변환
-- `download_resources.sh`: 외부 리소스 자동 다운로드
+## 🔧 Main Features
+- `detect.py`: Run object detection (**modified**)
+- `val.py`: Perform model evaluation (**modified**)
+- `export.py`: Export models to other formats such as ONNX (**original**)
+- `convert_model.sh`: Automatically convert `.pt` → `.onnx` → TensorRT engine
+- `download_resources.sh`: Automatically download external resources (e.g., pretrained weights and test video)
 
-## 환경 구성
+## Environment Setup
+
 ```bash
 pip install -r requirements.txt
+
+## how to Run 
+
+### 1. Download pretrained weights and test video
+
+```bash
+./custom_yolov5/scripts/download_resources.sh
+
+### 2. Convert .pt → .onnx → .engine (TensorRT)
+
+```bash
+./custom_yolov5/scripts/convert_model.sh
+
+### 3. Run inference
+
+```bash
+./custom_yolov5/scripts/test_detect.sh
+
+### 4. Evaluate the model (mAP, precision, recall)
+
+```bash
+./custom_yolov5/scripts/test_val.sh
