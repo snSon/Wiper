@@ -20,18 +20,22 @@ pip install -r requirements.txt
 
 ```bash
 ./custom_yolov5/scripts/download_resources.sh
+```
 
 ### 2. Convert .pt → .onnx → .engine (TensorRT)
 
 ```bash
 ./custom_yolov5/scripts/convert_model.sh
+```
 
 ### 3. Run inference
 
 ```bash
 ./custom_yolov5/scripts/test_detect.sh
+```
 
 ### 4. Evaluate the model (mAP, precision, recall)
 
 ```bash
 ./custom_yolov5/scripts/test_val.sh
+```
