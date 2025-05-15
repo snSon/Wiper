@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 
 # [0] 경로 설정
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # tools/
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  
 ROOT_DIR = SCRIPT_DIR 
 DETECT_PY = os.path.join(ROOT_DIR, "detect.py")
 BASE_DIR = os.path.join(ROOT_DIR, "runs", "test_detect")
