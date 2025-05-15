@@ -4,7 +4,7 @@
 # nvpmodel -m 0
 # jetson_clocks
 
-VIDEO_PATH="/home/wiper/Downloads/yolov5/videos/test_drive_30.mp4"
+VIDEO_PATH="videos/test_drive_30.mp4"
 IMG_SIZE=640
 CONF=0.25
 REPEAT=5  # 반복 횟수 변수 설정
@@ -20,7 +20,7 @@ for name in "${!experiments[@]}"; do
         echo "🔁 [$name] 실험 $i 번째 실행 중..."
 
         if [[ "$name" == "trt_engine" ]]; then
-            WEIGHTS="/home/wiper/Downloads/yolov5/yolov5s.engine"
+            WEIGHTS="yolov5s.engine"
         else
             WEIGHTS="yolov5s.pt"
         fi

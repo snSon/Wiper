@@ -2,9 +2,8 @@
 
 # [0] 현재 스크립트 기준 루트 경로 설정
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-VIDEO_DIR="$ROOT_DIR/videos"
-MODEL_PATH="$ROOT_DIR/yolov5s.pt"
+VIDEO_DIR="$SCRIPT_DIR/videos"
+MODEL_PATH="$SCRIPT_DIR/yolov5s.pt"
 VIDEO_PATH="$VIDEO_DIR/test_drive_30.mp4"
 
 # Google Drive 파일 ID
