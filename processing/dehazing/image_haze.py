@@ -1,5 +1,6 @@
 import cv2
 import os
+import numpy as np
 from haze_filter import apply_fog
 
 # 경로 설정
@@ -11,7 +12,7 @@ output_video_path = 'output/foggy_video.mp4'
 # ✅ 이미지에 안개 효과 적용
 def process_image():
     image = cv2.imread(input_image_path)
-    foggy_image = apply_fog(image, 0.5, 0.9)
+    foggy_image = apply_fog(image, 1.0, 0.9)
     cv2.imwrite(output_image_path, foggy_image)
     print(f"[✔] Foggy image saved at {output_image_path}")
 
@@ -28,10 +29,14 @@ def process_video():
 
     while cap.isOpened():
         ret, frame = cap.read()
-        if not ret:
+        if not ret or frame is None:
             break
-        foggy_frame = apply_fog(frame, 0.5, A=0.9)
+        print(frame)
+        
+        foggy_frame = apply_fog(frame, 1.0, A=0.9)
+        foggy_frame = np.clip(foggy_frame, 0, 255).astype(np.uint8)
         out.write(foggy_frame)
+
 
     cap.release()
     out.release()
