@@ -1,0 +1,7 @@
+custom_yolov5/**/__pycache__/
+custom_yolov5/runs/
+datasets/
+custom_yolov5/**/*.pt
+custom_yolov5/**/*.engine
+custom_yolov5/**/*.onnx
+custom_yolov5/**/videos/
