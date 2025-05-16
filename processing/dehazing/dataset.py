@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 class RESIDEDataset(Dataset):
     def __init__(self, root_dir, transform=None):
         self.hazy_dir = os.path.join(root_dir, "hazy")
-        self.clean_dir = os.path.join(root_dir, "gt")
+        self.clean_dir = os.path.join(root_dir, "clear")
         self.transform = transform
 
         self.hazy_images = sorted(os.listdir(self.hazy_dir))
@@ -15,7 +15,7 @@ class RESIDEDataset(Dataset):
 
         for hazy_name in self.hazy_images:
             base_id = hazy_name.split('_')[0]
-            clean_name = f"{base_id}.jpg"
+            clean_name = f"{base_id}.png"
             hazy_path = os.path.join(self.hazy_dir, hazy_name)
             clean_path = os.path.join(self.clean_dir, clean_name)
             if os.path.exists(clean_path):
