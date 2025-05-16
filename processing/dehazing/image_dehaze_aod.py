@@ -6,7 +6,7 @@ from net import dehaze_net
 
 # 경로 설정
 input_path = "input/foggy_image.png"
-output_path = "output/dehazed_image.png"
+output_path = "output/aod_dehazed_image.png"
 model_path = "processing/dehazing/dehazer.pth"
 
 # 1. 모델 로딩
