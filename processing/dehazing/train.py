@@ -13,7 +13,7 @@ from dataset import RESIDEDataset
 # 설정
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 batch_size = 16
-num_epochs = 50
+num_epochs = 200
 learning_rate = 1e-4
 train_data_dir = "./RESIDE/ITS/train"
 #val_data_dir = "./RESIDE/ITS/val"
