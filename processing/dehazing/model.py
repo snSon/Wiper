@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 # 기본 CNN 블록 (DehazeNet)
 class ConvBlock(nn.Module):
@@ -35,17 +36,21 @@ class AttentionBlock(nn.Module):
 class MultiScaleBlock(nn.Module):
     def __init__(self, channels):
         super(MultiScaleBlock, self).__init__()
-        self.down1 = nn.AvgPool2d(2)
+        self.down1 = nn.AvgPool2d(2, ceil_mode=True)
         self.conv1 = ConvBlock(channels, channels)
-        self.up1 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
 
-        self.down2 = nn.AvgPool2d(4)
+        self.down2 = nn.AvgPool2d(4, ceil_mode=True)
         self.conv2 = ConvBlock(channels, channels)
-        self.up2 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
 
     def forward(self, x):
-        x1 = self.up1(self.conv1(self.down1(x)))
-        x2 = self.up2(self.conv2(self.down2(x)))
+        h, w = x.shape[2], x.shape[3]
+
+        x1 = self.conv1(self.down1(x))
+        x1 = F.interpolate(x1, size=(h, w), mode='bilinear', align_corners=True)
+
+        x2 = self.conv2(self.down2(x))
+        x2 = F.interpolate(x2, size=(h, w), mode='bilinear', align_corners=True)
+
         return x + x1 + x2
 
 # 전체 네트워크 구성 (AOD-Net의 end-to-end)
