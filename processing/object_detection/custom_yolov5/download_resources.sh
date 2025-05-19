@@ -4,6 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VIDEO_DIR="$SCRIPT_DIR/videos"
 MODEL_PATH="$SCRIPT_DIR/yolov5s.pt"
+YAML_PATH="$SCRIPT_DIR/models/yolov5s.yaml"
 VIDEO_PATH="$VIDEO_DIR/test_drive_30.mp4"
 
 # Google Drive 파일 ID
@@ -16,20 +17,36 @@ then
     pip install gdown
 fi
 
+# yolov5s.yaml 없으면 다운로드
+if [ ! -f "$YAML_PATH" ]; then
+    echo "📄 yolov5s.yaml 파일 다운로드 중..."
+    mkdir -p "$SCRIPT_DIR/models"
+    wget https://raw.githubusercontent.com/ultralytics/yolov5/v7.0/models/yolov5s.yaml -O "$YAML_PATH"
+fi
+
+# export.py에서 사용 가능한 포맷으로 yolov5s.pt 저장
+if [ ! -f "$MODEL_PATH" ]; then
+    echo "✅ yolov5s.pt 모델을 생성 중..."
+    python3 - <<EOF
+from models.yolo import DetectionModel
+from utils.general import check_yaml
+import torch
+
+cfg = check_yaml('$YAML_PATH')
+model = DetectionModel(cfg, ch=3, nc=80)
+
+hub_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', trust_repo=True)
+model.load_state_dict(hub_model.model.state_dict())
+
+torch.save({'model': model}, '$MODEL_PATH')
+EOF
+
+else
+    echo "✅ 모델 파일 이미 존재: $MODEL_PATH"
+fi
+
 # 영상 디렉토리 없으면 생성
 mkdir -p "$VIDEO_DIR"
-
-# YOLOv5s 모델 다운로드 (PyTorch Hub 사용)
-if [ ! -f "$MODEL_PATH" ]; then
-    echo "✅ yolov5s.pt 모델을 PyTorch Hub에서 다운로드합니다..."
-    python3 - <<EOF
-import torch
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', trust_repo=True)
-torch.save(model.state_dict(), "$MODEL_PATH")
-EOF
-else
-    echo " 모델 파일 이미 존재: $MODEL_PATH"
-fi
 
 # 영상 파일 다운로드
 if [ ! -f "$VIDEO_PATH" ]; then

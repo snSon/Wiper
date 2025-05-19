@@ -1,26 +1,24 @@
 #!/bin/bash
 
-# [0] 현재 스크립트 경로 기준으로 custom_models 경로 설정
+# [0] 현재 스크립트 경로 기준으로 custom_yolov5 경로 설정
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"  # == custom_yolov5
-TOOLS_DIR="$ROOT_DIR/tools"
-MODEL_DIR="$ROOT_DIR"
+ROOT_DIR="$SCRIPT_DIR"
 
-# ✅ PYTHONPATH 설정
+# PYTHONPATH 설정
 export PYTHONPATH="$ROOT_DIR:$PYTHONPATH"
 
 # [1] 저장 경로 및 파일 이름 설정
-WEIGHTS="$MODEL_DIR/yolov5s.pt"
-ONNX_PATH="$MODEL_DIR/yolov5s.onnx"
-ENGINE_PATH="$MODEL_DIR/yolov5s.engine"
-LOG_PATH="$MODEL_DIR/trtexec.log"
+WEIGHTS="$ROOT_DIR/yolov5s.pt"
+ONNX_PATH="$ROOT_DIR/yolov5s.onnx"
+ENGINE_PATH="$ROOT_DIR/yolov5s.engine"
+LOG_PATH="$ROOT_DIR/trtexec.log"
 
 # [2] 디렉토리 없으면 생성
-mkdir -p "$MODEL_DIR"
+mkdir -p "$ROOT_DIR"
 
 # [3] export.py 실행하여 ONNX 변환
 echo "📦 Step 1: .pt → .onnx 변환 중..."
-python "$TOOLS_DIR/export.py" --weights "$WEIGHTS" --img 640 --batch 1 --include onnx
+python3 "$ROOT_DIR/export.py" --weights "$WEIGHTS" --img 640 --batch 1 --include onnx
 
 # 변환 결과 확인
 if [ ! -f "$ONNX_PATH" ]; then
