@@ -12,8 +12,8 @@ from dataset import RESIDEDataset
 
 # 설정
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 16
-num_epochs = 200
+batch_size = 64
+num_epochs = 1000
 learning_rate = 1e-4
 train_data_dir = "./RESIDE/ITS/train"
 #val_data_dir = "./RESIDE/ITS/val"
@@ -77,8 +77,9 @@ def train():
         # print(f"Epoch [{epoch+1}/{num_epochs}] Validation Loss: {avg_val_loss:.4f}")
 
         # 모델 저장
-        torch.save(model.state_dict(), os.path.join(save_model_path, f"jetDehaze_epoch_{epoch+1}.pth"))
-
+        if avg_train_loss<0.003:
+            torch.save(model.state_dict(), os.path.join(save_model_path, f"jetDehaze_epoch_{epoch+1}.pth"))
+            print(f"{epoch+1} model saved")
     print("Training completed.")
 
 if __name__ == "__main__":

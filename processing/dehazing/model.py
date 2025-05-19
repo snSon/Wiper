@@ -42,7 +42,7 @@ class MultiScaleBlock(nn.Module):
         self.down2 = nn.AvgPool2d(4, ceil_mode=True)
         self.conv2 = ConvBlock(channels, channels)
 
-    def forward(self, x):
+    def forward(self, x): #detail 유지 테스트 - F.interpolate 사용
         h, w = x.shape[2], x.shape[3]
 
         x1 = self.conv1(self.down1(x))
