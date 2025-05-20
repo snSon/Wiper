@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.ndimage import gaussian_filter
-from skimage.util import dtype_range
+from skimage.util.dtype import dtype_range
 
 def ssim(A, ref, radius=1.5, dynamic_range=None, regularization_constants=None, exponents=(1, 1, 1)):
     A = A.astype(np.float64)
