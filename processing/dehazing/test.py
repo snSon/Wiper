@@ -9,7 +9,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 모델 로드
 model = JetDehazeNet().to(device)
-model.load_state_dict(torch.load("jetDehaze_epoch_18.pth", map_location=device))
+model.load_state_dict(torch.load("jetDehaze_epoch_265.pth", map_location=device))
 model.eval()
 
 # 디렉토리 설정
