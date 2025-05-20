@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
-from model import JetDehazeNet
+from processing.dehazing.JetDehaze.model import JetDehazeNet
 from dataset import RESIDEDataset
 
 # 설정
