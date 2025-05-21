@@ -1,6 +1,7 @@
 #!/bin/bash
 
-LOG_FILE="log/jetson_env_log.log"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_FILE="$SCRIPT_DIR/../log/jetson_env.log"
 
 get_jetpack_version() {
   case "$1" in
@@ -38,7 +39,7 @@ CUDNN_PATCH=$(grep "#define CUDNN_PATCHLEVEL" /usr/include/cudnn_version.h | awk
 echo "cuDNN Version     : ${CUDNN_MAJOR}.${CUDNN_MINOR}.${CUDNN_PATCH}" >> $LOG_FILE
 echo "" >> $LOG_FILE
 
-echo "📷 [OpenCV]" >> $LOG_FILE
+echo "[OpenCV]" >> $LOG_FILE
 echo "OpenCV Version    : $(python3 -c "import cv2; print(cv2.__version__)")" >> $LOG_FILE
 echo "" >> $LOG_FILE
 
@@ -52,4 +53,4 @@ tegrastats --interval 1000 --logfile _tmp_gpu.log & sleep 3 && kill $!
 head -n 1 _tmp_gpu.log >> $LOG_FILE
 rm _tmp_gpu.log
 
-echo "✅ Environment check complete. Results saved to '$LOG_FILE'."
+echo "Environment check complete. Results saved to '$LOG_FILE'."

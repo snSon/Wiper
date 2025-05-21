@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # [0] 현재 스크립트 기준 루트 경로 설정
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
 VIDEO_DIR="$SCRIPT_DIR/videos"
 MODEL_PATH="$SCRIPT_DIR/models/yolov5s.pt"
 YAML_PATH="$SCRIPT_DIR/models/yolov5s.yaml"

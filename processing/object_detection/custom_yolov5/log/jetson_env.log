@@ -6,14 +6,14 @@ L4T Version       : 35.4.1
 
 [Python & PyTorch]
 Python Version    : 3.8.10
-PyTorch Version   : 2.4.1
-TorchVision Version: 0.19.1
+PyTorch Version   : 2.1.0a0+41361538.nv23.06
+TorchVision Version: 0.16.1
 
 [CUDA & cuDNN]
 CUDA Version      : 11.4,
 cuDNN Version     : 8.6.0
 
-[OpenCV]
+📷 [OpenCV]
 OpenCV Version    : 4.11.0
 
 [TensorRT]
@@ -21,4 +21,4 @@ TensorRT Version  : 5.1.2-b104
 TensorRT Available: True
 
 [GPU Status Snapshot]
-05-19-2025 03:43:06 RAM 5491/7471MB (lfb 25x256kB) SWAP 1147/3736MB (cached 1MB) CPU [24%@1510,18%@1510,27%@1510,0%@1510,1%@1510,7%@1510] EMC_FREQ 0% GR3D_FREQ 99%@[0] CV0@-256C CPU@60.093C SOC2@60.031C SOC0@58.406C CV1@-256C GPU@60C tj@60.093C SOC1@59.687C CV2@-256C
+05-21-2025 07:11:16 RAM 3504/7471MB (lfb 279x1MB) SWAP 728/3736MB (cached 3MB) CPU [0%@1510,0%@1510,0%@1510,0%@1510,1%@1510,1%@1510] EMC_FREQ 0% GR3D_FREQ 0%@[0] CV0@-256C CPU@57.812C SOC2@57.5C SOC0@55.687C CV1@-256C GPU@56.937C tj@57.812C SOC1@57.625C CV2@-256C
