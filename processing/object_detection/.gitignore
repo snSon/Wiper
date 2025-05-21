@@ -7,3 +7,5 @@ custom_yolov5/**/*.onnx
 custom_yolov5/**/videos/
 custom_yolov5/**/*.whl/
 custom_yolov5/**/*.log/
+custom_yolov5/**/*.txt/
+custom_yolov5/**/*.mp4/
