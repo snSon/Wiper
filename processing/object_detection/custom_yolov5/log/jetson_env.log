@@ -13,7 +13,7 @@ TorchVision Version: 0.19.1
 CUDA Version      : 11.4,
 cuDNN Version     : 8.6.0
 
-📷 [OpenCV]
+[OpenCV]
 OpenCV Version    : 4.11.0
 
 [TensorRT]
