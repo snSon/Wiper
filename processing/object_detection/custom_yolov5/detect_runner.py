@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 
 # [0] 경로 설정
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = SCRIPT_DIR 
 DETECT_PY = os.path.join(ROOT_DIR, "detect.py")
 BASE_DIR = os.path.join(ROOT_DIR, "runs", "test_detect")
@@ -76,19 +76,19 @@ print(f"[INFO] Running: {' '.join(cmd)}")
 # 디렉토리 미리 생성
 os.makedirs(BASE_DIR, exist_ok=True)
 
-# 1️⃣ 리소스 측정 시작
+# 리소스 측정 시작
 monitor_thread = threading.Thread(target=monitor_resources)
 monitor_thread.start()
 
-# 2️⃣ detect.py 실행
+# detect.py 실행
 proc = subprocess.Popen(cmd, cwd=ROOT_DIR)
 proc.wait()
 
-# 3️⃣ 리소스 측정 종료
+# 리소스 측정 종료
 monitoring = False
 monitor_thread.join()
 
-# 🔍 생성된 exp 디렉토리 확인
+# 생성된 exp 디렉토리 확인
 matched_dirs = sorted(
     [d for d in os.listdir(BASE_DIR) if d.startswith(exp_name)],
     key=lambda d: os.path.getmtime(os.path.join(BASE_DIR, d))
@@ -116,9 +116,9 @@ fps = 1 / avg_time if avg_time else 0
 # 리소스 로그 저장
 log_path = os.path.join(exp_dir, "resource_log.txt")
 with open(log_path, "w") as log_file:
-    log_file.write("🔍 GPU 사용률 로그:\n")
+    log_file.write("GPU 사용률 로그:\n")
     log_file.write(f"gpu_avg = {gpu_avg}, gpu_max = {gpu_max}\n\n")
-    log_file.write("💾 RAM 사용량 로그:\n")
+    log_file.write("RAM 사용량 로그:\n")
     log_file.write(f"ram_avg = {ram_avg}, ram_max = {ram_max}\n")
 
 # 누적 로그 저장
