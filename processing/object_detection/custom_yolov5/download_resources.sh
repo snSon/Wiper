@@ -3,7 +3,7 @@
 # [0] 현재 스크립트 기준 루트 경로 설정
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VIDEO_DIR="$SCRIPT_DIR/videos"
-MODEL_PATH="$SCRIPT_DIR/yolov5s.pt"
+MODEL_PATH="$SCRIPT_DIR/models/yolov5s.pt"
 YAML_PATH="$SCRIPT_DIR/models/yolov5s.yaml"
 VIDEO_PATH="$VIDEO_DIR/test_drive_30.mp4"
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """

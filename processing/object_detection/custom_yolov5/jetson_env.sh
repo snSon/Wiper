@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="jetson_env_log.txt"
+LOG_FILE="log/jetson_env_log.log"
 
 get_jetpack_version() {
   case "$1" in

@@ -8,10 +8,10 @@ ROOT_DIR="$SCRIPT_DIR"
 export PYTHONPATH="$ROOT_DIR:$PYTHONPATH"
 
 # [1] 저장 경로 및 파일 이름 설정
-WEIGHTS="$ROOT_DIR/yolov5s.pt"
-ONNX_PATH="$ROOT_DIR/yolov5s.onnx"
-ENGINE_PATH="$ROOT_DIR/yolov5s.engine"
-LOG_PATH="$ROOT_DIR/trtexec.log"
+WEIGHTS="$ROOT_DIR/models/yolov5s.pt"
+ONNX_PATH="$ROOT_DIR/models/yolov5s.onnx"
+ENGINE_PATH="$ROOT_DIR/models/yolov5s.engine"
+LOG_PATH="$ROOT_DIR/log/trtexec.log"
 
 # [2] 디렉토리 없으면 생성
 mkdir -p "$ROOT_DIR"

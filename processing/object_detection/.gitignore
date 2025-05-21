@@ -5,3 +5,4 @@ custom_yolov5/**/*.pt
 custom_yolov5/**/*.engine
 custom_yolov5/**/*.onnx
 custom_yolov5/**/videos/
+custom_yolov5/**/*.whl/

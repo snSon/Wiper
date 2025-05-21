@@ -14,8 +14,8 @@ repeat=1  # 원하는 반복 횟수로 수정 가능
 
 for ((i=1; i<=repeat; i++)); do
     echo " $i 번째 실행 중..."
-    python val.py \
-        --weights yolov5s.engine \
+    python3 val.py \
+        --weights models/yolov5s.engine \
         --data data/coco128.yaml \
         --img 640 \
         --task val \

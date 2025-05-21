@@ -4,10 +4,11 @@
 # nvpmodel -m 0
 # jetson_clocks
 
+# VIDEO_PATH="videos/depth100_dehazed_video_with_blended_center.mp4"
 VIDEO_PATH="videos/test_drive_30.mp4"
 IMG_SIZE=640
 CONF=0.25
-REPEAT=5  # 반복 횟수 변수 설정
+REPEAT=1  # 반복 횟수 변수 설정
 
 # 실험 조합 정의 
 declare -A experiments
@@ -20,12 +21,14 @@ for name in "${!experiments[@]}"; do
         echo "🔁 [$name] 실험 $i 번째 실행 중..."
 
         if [[ "$name" == "trt_engine" ]]; then
-            WEIGHTS="yolov5s.engine"
+            WEIGHTS="models/yolov5s.engine"
         else
-            WEIGHTS="yolov5s.pt"
+            WEIGHTS="models/yolov5s.pt"
         fi
+        ## 반복문 
+        ## 이미지 디헤이징 하기
 
-        python test_detect_summary.py \
+        python3 test_detect_summary.py \
             --weights "$WEIGHTS" \
             --source "$VIDEO_PATH" \
             --conf $CONF \
