@@ -13,20 +13,20 @@ VIDEO_ID="1iNMtI-X5bhbP7aOyfMDur5eOHAvCnaxM"
 # gdown 설치 확인
 if ! command -v gdown &> /dev/null
 then
-    echo "⚠️  gdown이 설치되지 않았습니다. 설치 중..."
+    echo "gdown이 설치되지 않았습니다. 설치 중..."
     pip install gdown
 fi
 
 # yolov5s.yaml 없으면 다운로드
 if [ ! -f "$YAML_PATH" ]; then
-    echo "📄 yolov5s.yaml 파일 다운로드 중..."
+    echo "yolov5s.yaml 파일 다운로드 중..."
     mkdir -p "$SCRIPT_DIR/models"
     wget https://raw.githubusercontent.com/ultralytics/yolov5/v7.0/models/yolov5s.yaml -O "$YAML_PATH"
 fi
 
 # export.py에서 사용 가능한 포맷으로 yolov5s.pt 저장
 if [ ! -f "$MODEL_PATH" ]; then
-    echo "✅ yolov5s.pt 모델을 생성 중..."
+    echo "yolov5s.pt 모델을 생성 중..."
     python3 - <<EOF
 from models.yolo import DetectionModel
 from utils.general import check_yaml
@@ -42,7 +42,7 @@ torch.save({'model': model}, '$MODEL_PATH')
 EOF
 
 else
-    echo "✅ 모델 파일 이미 존재: $MODEL_PATH"
+    echo "모델 파일 이미 존재: $MODEL_PATH"
 fi
 
 # 영상 디렉토리 없으면 생성
