@@ -1,3 +1,4 @@
+# detect_runner.py
 import argparse
 import subprocess, time, re, statistics, os, threading
 import pandas as pd
@@ -7,6 +8,7 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = SCRIPT_DIR 
 DETECT_PY = os.path.join(ROOT_DIR, "detect.py")
+# DETECT_PY = os.path.join(ROOT_DIR, "custom_detect.py")
 BASE_DIR = os.path.join(ROOT_DIR, "runs", "test_detect")
 
 # [1] PYTHONPATH 설정 (detect.py에서 models, utils 참조 가능하도록)
@@ -22,7 +24,6 @@ exp_name = args.name
 
 weights_path = os.path.abspath(args.weights)
 source_path = os.path.abspath(args.source)
-data_path = os.path.abspath(os.path.join(ROOT_DIR, "data", "coco128.yaml"))
 
 # GPU & RAM 모니터링
 gpu_avg = ram_avg = gpu_max = ram_max = "N/A"
@@ -30,12 +31,9 @@ monitoring = True
 
 def monitor_resources(interval=0.2):
     global gpu_avg, ram_avg, gpu_max, ram_max, monitoring
-
-    gpu_usage = []
-    ram_usage = []
+    gpu_usage, ram_usage = [], []
 
     proc = subprocess.Popen(['tegrastats'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-
     try:
         while monitoring:
             line = proc.stdout.readline().decode('utf-8').strip()
@@ -65,7 +63,6 @@ cmd = [
     "--source", source_path,
     "--project", BASE_DIR,
     "--name", exp_name,
-    "--data", data_path,  # 이 줄 추가
     "--save-txt",
     "--save-conf",
     "--device", "0"
