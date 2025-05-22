@@ -161,28 +161,28 @@ class Net(nn.Module):
         feature_mem_up = [res16x]
 
         res16x = self.convd16x(res16x)
-        res16x = F.upsample(res16x, res8x.size()[2:], mode='bilinear')
+        res16x = F.interpolate(res16x, res8x.size()[2:], mode='bilinear')
         res8x = torch.add(res16x, res8x)
         res8x = self.dense_4(res8x) + res8x - res16x
         res8x = self.fusion_4(res8x, feature_mem_up)
         feature_mem_up.append(res8x)
 
         res8x = self.convd8x(res8x)
-        res8x = F.upsample(res8x, res4x.size()[2:], mode='bilinear')
+        res8x = F.interpolate(res8x, res4x.size()[2:], mode='bilinear')
         res4x = torch.add(res8x, res4x)
         res4x = self.dense_3(res4x) + res4x - res8x
         res4x = self.fusion_3(res4x, feature_mem_up)
         feature_mem_up.append(res4x)
 
         res4x = self.convd4x(res4x)
-        res4x = F.upsample(res4x, res2x.size()[2:], mode='bilinear')
+        res4x = F.interpolate(res4x, res2x.size()[2:], mode='bilinear')
         res2x = torch.add(res4x, res2x)
         res2x = self.dense_2(res2x) + res2x - res4x
         res2x = self.fusion_2(res2x, feature_mem_up)
         feature_mem_up.append(res2x)
 
         res2x = self.convd2x(res2x)
-        res2x = F.upsample(res2x, x.size()[2:], mode='bilinear')
+        res2x = F.interpolate(res2x, x.size()[2:], mode='bilinear')
         x = torch.add(res2x, x)
         x = self.dense_1(x) + x - res2x
         x = self.fusion_1(x, feature_mem_up)
