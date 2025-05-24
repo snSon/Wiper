@@ -35,6 +35,14 @@ import platform
 import sys
 from pathlib import Path
 
+## juseok
+# YOLO 루트 기준으로 경로 추가
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[2]  # remote/Wiper/processing/
+sys.path.append(str(ROOT))
+
+from dehazing.dehazing_pipeline import dehaze_frame_bgr
+
 import torch
 
 FILE = Path(__file__).resolve()
@@ -206,6 +214,7 @@ def run(
                         pred = torch.cat((pred, model(image, augment=augment, visualize=visualize).unsqueeze(0)), dim=0)
                 pred = [pred, None]
             else:
+                
                 pred = model(im, augment=augment, visualize=visualize)
 
         # Print inference time
@@ -242,6 +251,15 @@ def run(
                 s += f"{i}: "
             else:
                 p, im0, frame = path, im0s.copy(), getattr(dataset, "frame", 0)
+
+            # 디헤이징 적용 - juseok
+            im0 = dehaze_frame_bgr(
+                im0, 
+                enable_haze=False, 
+                enable_aod=True, 
+                enable_roi=True, 
+                enable_blend=True
+            )
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg

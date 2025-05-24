@@ -4,13 +4,18 @@ import torch
 import numpy as np
 import torchvision.transforms as transforms
 import cv2
-from net import dehaze_net
-from haze_filter import apply_fog
+import os
+
+from dehazing.net import dehaze_net
+from dehazing.haze_filter import apply_fog
+
 
 # 모델 및 설정 초기화 (1회만)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = dehaze_net().to(device)
-model.load_state_dict(torch.load("processing/dehazing/dehazer.pth", map_location=device))
+
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "dehazer.pth")
+model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
 to_tensor = transforms.ToTensor()
 
