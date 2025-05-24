@@ -13,6 +13,7 @@
 #include <thread>
 #include <chrono>
 #include <iomanip>
+#include <queue>
 
 const float GRAVITY = 9.8;     // 중력 가속도
 
@@ -22,8 +23,6 @@ struct DetectedObject {
     float y_center;     // 인식 객체 박스 가운데 y
     float bbox_width;   // 바운딩 박스 폭 (픽셀)
     float bbox_height;  // 바운딩 박스 높이 (픽셀)
-    // float distance_m;   // 장애물까지 거리 (m)
-    // float velocity_mps; // 상대 속도 (m/s)
 };
 
 // 거리 임의 계산
@@ -58,9 +57,52 @@ double estimate_distance_from_bbox(const DetectedObject& obj, const std::string&
     double distance_m = object_height_m * focal_length_px / bbox_height_px;
     return distance_m;
 }
-// 파라미터 (Autoware에서 가져옴)
-const float MIN_DIST_TO_OBJECT = 1.0;     // 최소 정지 거리
-const float MARGIN_TIME_SEC    = 2.0;     // 충돌 임박 판단 기준 시간
+// const float MARGIN_TIME_SEC    = 2.0;     // 충돌 임박 판단 기준 시간
+
+// 객체 속도 유추
+struct TrackedObject {
+    std::string label;
+    std::deque<DetectedObject> history;
+    std::deque<double> distances;
+    std::deque<std::chrono::steady_clock::time_point> timestamps;
+
+    const size_t max_history = 5;
+
+    void add_observation(const DetectedObject& obj) {
+        double distance = estimate_distance_from_bbox(obj, label);
+        auto now = std::chrono::steady_clock::now();
+
+        if (distance > 0) {
+            history.push_back(obj);
+            distances.push_back(distance);
+            timestamps.push_back(now);
+
+            if (history.size() > max_history) {
+                history.pop_front();
+                distances.pop_front();
+                timestamps.pop_front();
+            }
+        }
+    }
+
+    // 상대 속도 계산 (m/s)
+    double estimate_relative_speed() const {
+        if (distances.size() < 2) return 0.0;
+
+        size_t i = 0;
+        size_t j = distances.size() - 1;
+
+        double d1 = distances[i];
+        double d2 = distances[j];
+
+        double dt_sec = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            timestamps[j] - timestamps[i]).count() / 1000.0;
+
+        if (dt_sec <= 0.0) return 0.0;
+
+        return (d1 - d2) / dt_sec;  // 양수면 가까워짐, 음수면 멀어짐
+    }
+};
 
 // 반응 시간 계산 공식
 double compute_total_braking_distance(double velocity_mps, double reaction_time_sec, double friction) {
@@ -125,23 +167,79 @@ double calculate_braking_distance(const DetectedObject& obj, double ego_velocity
     }
     return 0;
 }
+// 주행 추종 함수
+void match_object_speed(double object_speed_mps) {
+    std::cout << "객체 속도에 맞춰 주행 시작... 대상 속도: " << object_speed_mps << " m/s\n";
+    const double dt = 0.1;
+    double total_distance = 0.0;
+    double time_elapsed = 0.0;
+
+    for (int i = 0; i < 50; ++i) {
+        double step = object_speed_mps * dt;
+        total_distance += step;
+        time_elapsed += dt;
+
+        std::cout << "[t=" << time_elapsed << "s] 속도: " << object_speed_mps << " m/s, 이동 거리: " << step << " m\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+// 객체 속도 추정
+void update_and_decide_with_distance_and_speed(TrackedObject& tracked, const DetectedObject& current_obj, double ego_velocity_kmph) {
+    tracked.add_observation(current_obj);
+    double relative_speed = tracked.estimate_relative_speed();
+
+    if (tracked.distances.empty()) {
+        std::cerr << "[오류] 거리 기록 없음\n";
+        return;
+    }
+
+    double current_distance = tracked.distances.back();
+    double ego_velocity_mps = ego_velocity_kmph * 1000 / 3600;
+
+    std::cout << std::fixed << std::setprecision(2)
+              << "[데이터] 거리: " << current_distance << " m / 상대 속도: " << relative_speed << " m/s\n";
+
+    // 거리 + 속도 기반 판단
+    if (current_distance <= 5.0 && std::abs(relative_speed) < 0.2) {
+        std::cout << "[판단] 가까운 정지 객체 → 제동\n";
+        simulate_wet_braking(ego_velocity_kmph, current_distance);
+    }
+    else if (current_distance <= 20.0 && std::abs(relative_speed) < 1.0) {
+        std::cout << "[판단] 접근 중인 느린 객체 → 감속 후 접근\n";
+        simulate_wet_braking(ego_velocity_kmph, current_distance);
+    }
+    else {
+        std::cout << "[판단] 주행 중인 객체 → 속도 맞춰 추종\n";
+        match_object_speed(relative_speed);
+    }
+}
+
 
 int main() {
-    double current_speed = 50.0;
+    TrackedObject tracked;
+    tracked.label = "car";
+    double ego_velocity_kmph = 50.0; // 사용자 차량
     double target_speed = 0.0;
     // 예시: 객체 인식 결과 입력
     std::vector<DetectedObject> objects = {
-        {5.0f, -2.0f, 0.5f, 0.5f},
+        {0, 0, 50, 120},  // bbox height 증가 → 가까워짐
+        {0, 0, 52, 123},
+        {0, 0, 54, 127},
+        {0, 0, 55, 130},
+        {0, 0, 56, 134}
     };
 
     auto start = std::chrono::steady_clock::now();
-    compute_total_braking_distance(current_speed * 1000 / 3600, 0, 0.35);  // 임시
+    compute_total_braking_distance(ego_velocity_kmph * 1000 / 3600, 0, 0.35);  // 임시
     auto end = std::chrono::steady_clock::now();
 
     double reaction_time_sec = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
     std::cout << std::fixed << std::setprecision(6) << "반응시간: " << reaction_time_sec << "\n";
     // 다시 판단 (정확한 반응 시간 반영)
-    calculate_braking_distance(objects[0], current_speed, reaction_time_sec);
-
+    calculate_braking_distance(objects[0], ego_velocity_kmph, reaction_time_sec);
+    for (const auto& obj : objects) {
+        update_and_decide_with_distance_and_speed(tracked, obj, ego_velocity_kmph);
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
     return 0;
 }
