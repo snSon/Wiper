@@ -199,7 +199,7 @@ double calculate_braking_distance(const DetectedObject& obj, double ego_velocity
 
     if (distance_m <= wet_braking_distance) {
         std::cout << "긴급 정지!"<< "\n";
-    } else if (distance_m > wet_braking_distance) {
+    } else if (distance_m > wet_braking_distance && (distance_m - wet_braking_distance) <= 5.0) {
         std::cout << "감속 시작" << "\n";
         simulate_wet_braking(ego_velocity, distance_m);
     } else {
