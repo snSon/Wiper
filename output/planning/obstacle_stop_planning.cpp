@@ -258,7 +258,6 @@ void update_and_decide_with_distance_and_speed(TrackedObject& tracked, const Det
 int main() {
     TrackedObject tracked;
     tracked.label = "car";
-    double ego_velocity_kmph = 50.0; // 사용자 차량 속도
     double target_speed = 0.0;
 
     // 반응 시간 측정
