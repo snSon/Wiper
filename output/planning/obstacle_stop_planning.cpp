@@ -13,9 +13,17 @@
 #include <thread>
 #include <chrono>
 #include <iomanip>
+#include <deque>
 #include <queue>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <cstring>
 
 const float GRAVITY = 9.8;     // 중력 가속도
+const int MAX_OBJECTS = 20; // 인식 객체 최대수
+const int FRAME_COUNT = 932; // 영상의 프레임 수
+const char* shm_name = "/detection_buffer";
 
 // 여기는 변경해서 사용하면 됨
 struct DetectedObject {
@@ -24,6 +32,38 @@ struct DetectedObject {
     float bbox_width;   // 바운딩 박스 폭 (픽셀)
     float bbox_height;  // 바운딩 박스 높이 (픽셀)
 };
+
+// 공유 메모리에서 객체 목록 읽기
+std::vector<DetectedObject> read_shared_objects(int frame_id) {
+    size_t OBJECT_SIZE = sizeof(DetectedObject);
+    size_t FRAME_SIZE = MAX_OBJECTS * OBJECT_SIZE;
+
+    int shm_fd = shm_open(shm_name, O_RDONLY, 0666);
+    if (shm_fd == -1){
+        std::cerr << "공유 메모리 열기 실패" << std::endl;
+        exit(1);
+    }
+
+    void* ptr = mmap(0, FRAME_COUNT * FRAME_SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
+    if (ptr == MAP_FAILED) {
+        std::cerr << "mmap 실패" << std::endl;
+        exit(1);
+    }
+
+
+    DetectedObject* objects_all = static_cast<DetectedObject*>(ptr);
+    DetectedObject* frame_ptr = objects_all + frame_id * MAX_OBJECTS;
+
+    std::vector<DetectedObject> result;
+    for(int i = 0; i < MAX_OBJECTS; ++i) {
+        if (frame_ptr[i].bbox_height <= 0.0f) break;
+        result.push_back(frame_ptr[i]);
+    }
+
+    munmap(ptr, FRAME_COUNT * FRAME_SIZE);
+    close(shm_fd);
+    return result;
+}
 
 // 거리 임의 계산
 double estimate_distance_from_bbox(const DetectedObject& obj, const std::string& label) {
@@ -218,28 +258,32 @@ void update_and_decide_with_distance_and_speed(TrackedObject& tracked, const Det
 int main() {
     TrackedObject tracked;
     tracked.label = "car";
-    double ego_velocity_kmph = 50.0; // 사용자 차량
+    double ego_velocity_kmph = 50.0; // 사용자 차량 속도
     double target_speed = 0.0;
-    // 예시: 객체 인식 결과 입력
-    std::vector<DetectedObject> objects = {
-        {0, 0, 50, 120},  // bbox height 증가 → 가까워짐
-        {0, 0, 52, 123},
-        {0, 0, 54, 127},
-        {0, 0, 55, 130},
-        {0, 0, 56, 134}
-    };
 
+    // 반응 시간 측정
     auto start = std::chrono::steady_clock::now();
     compute_total_braking_distance(ego_velocity_kmph * 1000 / 3600, 0, 0.35);  // 임시
     auto end = std::chrono::steady_clock::now();
 
     double reaction_time_sec = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
     std::cout << std::fixed << std::setprecision(6) << "반응시간: " << reaction_time_sec << "\n";
-    // 다시 판단 (정확한 반응 시간 반영)
-    calculate_braking_distance(objects[0], ego_velocity_kmph, reaction_time_sec);
-    for (const auto& obj : objects) {
-        update_and_decide_with_distance_and_speed(tracked, obj, ego_velocity_kmph);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+   
+    for (int frame = 0; frame < FRAME_COUNT; ++frame) {
+        std::cout << "\n========================\n";
+        std::cout << "[프레임 " << frame << "]\n";
+        auto objects = read_shared_objects(frame);
+        if(objects.empty()) {
+            std::cout << "[정보] 유효한 객체 없음.\n";
+            continue;
+        }
+        // 다시 판단 (정확한 반응 시간 반영)
+        calculate_braking_distance(objects[0], ego_velocity_kmph, reaction_time_sec);
+        for (const auto& obj : objects) {
+            update_and_decide_with_distance_and_speed(tracked, obj, ego_velocity_kmph);
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        }
     }
     return 0;
 }
+
