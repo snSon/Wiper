@@ -5,20 +5,20 @@ Ubuntu Version    : Ubuntu 20.04.6 LTS
 L4T Version       : 35.4.1
 
 [Python & PyTorch]
-Python Version    : 3.8.10
-PyTorch Version   : 2.1.0a0+41361538.nv23.06
-TorchVision Version: 0.16.1
+Python Version    : 3.12.10
+PyTorch Version   : 
+TorchVision Version: 
 
 [CUDA & cuDNN]
 CUDA Version      : 11.4,
 cuDNN Version     : 8.6.0
 
-📷 [OpenCV]
-OpenCV Version    : 4.11.0
+[OpenCV]
+OpenCV Version    : 
 
 [TensorRT]
 TensorRT Version  : 5.1.2-b104
-TensorRT Available: True
+TensorRT Available: 
 
 [GPU Status Snapshot]
-05-21-2025 07:11:16 RAM 3504/7471MB (lfb 279x1MB) SWAP 728/3736MB (cached 3MB) CPU [0%@1510,0%@1510,0%@1510,0%@1510,1%@1510,1%@1510] EMC_FREQ 0% GR3D_FREQ 0%@[0] CV0@-256C CPU@57.812C SOC2@57.5C SOC0@55.687C CV1@-256C GPU@56.937C tj@57.812C SOC1@57.625C CV2@-256C
+05-26-2025 03:17:12 RAM 3112/7471MB (lfb 16x4MB) SWAP 560/3736MB (cached 1MB) CPU [5%@1510,5%@1510,100%@1510,5%@1510,1%@1510,4%@1510] EMC_FREQ 0% GR3D_FREQ 0%@[0] CV0@-256C CPU@55.843C SOC2@55.218C SOC0@53.312C CV1@-256C GPU@55.062C tj@55.687C SOC1@55.125C CV2@-256C

@@ -6,18 +6,19 @@ import torchvision.transforms as transforms
 import cv2
 import os
 
-from dehazing.net import dehaze_net
+from dehazing.model import JetDehazeNet
 from dehazing.haze_filter import apply_fog
 
 
 # 모델 및 설정 초기화 (1회만)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = dehaze_net().to(device)
+model = JetDehazeNet().to(device)
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "dehazer.pth")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "JetDehaze.pth")
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
 to_tensor = transforms.ToTensor()
+
 
 # 블렌딩 마스크 생성 함수
 def generate_alpha_mask(roi_w, roi_h):
@@ -33,6 +34,7 @@ def generate_alpha_mask(roi_w, roi_h):
 alpha_mask_cache = {}
 
 def dehaze_frame_bgr(frame_bgr, enable_haze=False, enable_aod=True, enable_roi=False, enable_blend=False):
+    frame_bgr = cv2.resize(frame_bgr, (640, 360))
     h, w = frame_bgr.shape[:2]
     rgb_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
 
@@ -45,9 +47,13 @@ def dehaze_frame_bgr(frame_bgr, enable_haze=False, enable_aod=True, enable_roi=F
 
     # 기본 AOD 디헤이징
     input_tensor = to_tensor(rgb_frame).unsqueeze(0).to(device)
-    with torch.no_grad():
-        output_tensor = model(input_tensor)
+    try:
+        with torch.no_grad():
+            output_tensor = model(input_tensor)
+    except Exception as e:
+        print(f"Model inference error: {e}")
     output_image = output_tensor.squeeze(0).cpu().clamp(0, 1).numpy().transpose(1, 2, 0)
+
 
     if enable_roi:
         roi_w, roi_h = w // 2, h // 2

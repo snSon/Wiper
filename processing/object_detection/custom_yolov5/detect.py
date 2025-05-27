@@ -257,8 +257,8 @@ def run(
                 im0, 
                 enable_haze=False, 
                 enable_aod=True, 
-                enable_roi=True, 
-                enable_blend=True
+                enable_roi=False, 
+                enable_blend=False
             )
 
             p = Path(p)  # to Path
