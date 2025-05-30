@@ -35,6 +35,9 @@ import platform
 import sys
 from pathlib import Path
 
+# -- add module : juseok
+import numpy as np
+
 ## juseok
 # YOLO 루트 기준으로 경로 추가
 FILE = Path(__file__).resolve()
@@ -171,7 +174,6 @@ def run(
 
     # Load model
     device = select_device(device)
-    # model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
     # jiwan
     model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
     stride, names, pt = model.stride, model.names, model.pt
@@ -193,8 +195,35 @@ def run(
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(device=device), Profile(device=device), Profile(device=device))
     for path, im, im0s, vid_cap, s in dataset:
+        if webcam:
+            im0 = im0s[i].copy()
+        else:
+            im0 = im0s.copy()
+        
+        
+        # print(f"before dehazing : {im0.shape}")
+        
+        im0 = dehaze_frame_bgr(
+            im0, 
+            enable_haze=False, 
+            enable_aod=True, 
+            enable_roi=False, 
+            enable_blend=False
+        )
+        
+        # print(f"after dehazing : {im0.shape}")
+        
         with dt[0]:
-            im = torch.from_numpy(im).to(model.device)
+            # -- juseok -- #
+            img = cv2.resize(im0, imgsz[::-1])  # (W, H) 순서
+            img = img[..., ::-1]  # BGR → RGB
+            img = np.transpose(img, (2, 0, 1))  # CHW 형식으로 img 맞추기
+            img = np.ascontiguousarray(img)
+            # -- juseok -- #
+            
+            # print(f"before detection : {img.shape}")
+            
+            im = torch.from_numpy(img).to(model.device)
             im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
             im /= 255  # 0 - 255 to 0.0 - 1.0
             if len(im.shape) == 3:
@@ -214,8 +243,9 @@ def run(
                         pred = torch.cat((pred, model(image, augment=augment, visualize=visualize).unsqueeze(0)), dim=0)
                 pred = [pred, None]
             else:
-                
                 pred = model(im, augment=augment, visualize=visualize)
+                print(pred)
+                
 
         # Print inference time
         inference_time = dt[1].dt  # 추론 시간 (sec)
@@ -247,19 +277,10 @@ def run(
         for i, det in enumerate(pred):  # per image
             seen += 1
             if webcam:  # batch_size >= 1
-                p, im0, frame = path[i], im0s[i].copy(), dataset.count
+                p, frame = path[i], dataset.count
                 s += f"{i}: "
             else:
-                p, im0, frame = path, im0s.copy(), getattr(dataset, "frame", 0)
-
-            # 디헤이징 적용 - juseok
-            im0 = dehaze_frame_bgr(
-                im0, 
-                enable_haze=False, 
-                enable_aod=True, 
-                enable_roi=False, 
-                enable_blend=False
-            )
+                p, frame = path, getattr(dataset, "frame", 0)
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
@@ -326,8 +347,11 @@ def run(
                             vid_writer[i].release()  # release previous video writer
                         if vid_cap:  # video
                             fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                            # w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                            # h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                            
+                            # 이미지 저장 버그 해결 - juseok
+                            h, w = im0.shape[:2]
                         else:  # stream
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
                         save_path = str(Path(save_path).with_suffix(".mp4"))  # force *.mp4 suffix on results videos

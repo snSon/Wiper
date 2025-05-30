@@ -45,10 +45,16 @@ def dehaze_frame_bgr(frame_bgr, enable_haze=False, enable_aod=True, enable_roi=F
             rgb_tensor = apply_fog(rgb_tensor, beta=2.3, A=0.8)
         rgb_frame = (rgb_tensor.squeeze(0).cpu().clamp(0, 1).numpy().transpose(1, 2, 0) * 255).astype(np.uint8)
 
-    # 기본 AOD 디헤이징
-    input_tensor = to_tensor(rgb_frame).unsqueeze(0).to(device)
+    # # 기본 AOD 디헤이징
+    # roi_w, roi_h = w // 2, h // 2
+    # x1, y1 = (w - roi_w) // 2, (h - roi_h) // 2
+    # x2, y2 = x1 + roi_w, y1 + roi_h
+    # center_roi = rgb_frame[y1:y2, x1:x2, :]
+    # input_tensor = to_tensor(center_roi).unsqueeze(0).to(device)
     try:
         with torch.no_grad():
+            #output_tensor = model(input_tensor)
+            input_tensor = to_tensor(rgb_frame).unsqueeze(0).to(device)
             output_tensor = model(input_tensor)
     except Exception as e:
         print(f"Model inference error: {e}")
