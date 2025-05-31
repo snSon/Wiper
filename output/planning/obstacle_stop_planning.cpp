@@ -27,8 +27,8 @@ const int MAX_OBJECTS = 20; // 인식 객체 최대수
 const int FRAME_COUNT = 932; // 영상의 프레임 수
 const char* shm_name = "/detection_buffer";
 // 실제 데이터를 기준으로 변경
-const float ref_x = 0.52f;  // 기준 차의 bbox x_center
-const float ref_y = 0.60f;  // 기준 차의 bbox y_center
+const float ref_x = 0.37f;  // 기준 차의 bbox x_center
+const float ref_y = 0.45f;  // 기준 차의 bbox y_center
 const float tolerance = 0.03f; // 기준 허용 오차
 
 struct DetectedObject {
