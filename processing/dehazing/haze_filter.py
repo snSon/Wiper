@@ -1,17 +1,5 @@
 import torch
 
-def apply_fog_tensor(image_tensor, beta=2.3, A=0.8, layers=100):
-    """
-    apply_fog()을 wrapping하여 인터페이스를 단순화
-
-    Args:
-        image_tensor (torch.Tensor): [1, 3, H, W] 정규화 RGB 텐서
-    Returns:
-        torch.Tensor: 안개 적용 결과
-    """
-    return apply_fog(image_tensor, beta=beta, A=A, layers=layers)
-
-
 def apply_fog(image_tensor, beta=1.0, A=0.9, layers=100):
     """
     CUDA 기반 안개 효과 적용 함수
