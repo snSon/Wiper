@@ -35,16 +35,17 @@ import platform
 import sys
 from pathlib import Path
 
-# -- add module : juseok
+# -- add module : juseok -- #
 import numpy as np
 
-## juseok
 # YOLO 루트 기준으로 경로 추가
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # remote/Wiper/processing/
 sys.path.append(str(ROOT))
 
-from dehazing.dehazing_pipeline import dehaze_frame_bgr
+from dehazing.dehazing_utils import apply_dehazing
+
+# -- juseok -- #
 
 import torch
 
@@ -195,33 +196,22 @@ def run(
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(device=device), Profile(device=device), Profile(device=device))
     for path, im, im0s, vid_cap, s in dataset:
+        ## -- dehazing : juseok -- #
         if webcam:
             im0 = im0s[i].copy()
         else:
             im0 = im0s.copy()
         
+        # dehazing 적용
+        im0 = apply_dehazing(im0)
         
-        # print(f"before dehazing : {im0.shape}")
-        
-        im0 = dehaze_frame_bgr(
-            im0, 
-            enable_haze=False, 
-            enable_aod=True, 
-            enable_roi=False, 
-            enable_blend=False
-        )
-        
-        # print(f"after dehazing : {im0.shape}")
+        # -- juseok -- #
         
         with dt[0]:
-            # -- juseok -- #
             img = cv2.resize(im0, imgsz[::-1])  # (W, H) 순서
             img = img[..., ::-1]  # BGR → RGB
             img = np.transpose(img, (2, 0, 1))  # CHW 형식으로 img 맞추기
             img = np.ascontiguousarray(img)
-            # -- juseok -- #
-            
-            # print(f"before detection : {img.shape}")
             
             im = torch.from_numpy(img).to(model.device)
             im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
@@ -230,7 +220,7 @@ def run(
                 im = im[None]  # expand for batch dim
             if model.xml and im.shape[0] > 1:
                 ims = torch.chunk(im, im.shape[0], 0)
-
+        
         # Inference
         with dt[1]:
             visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if visualize else False
@@ -244,7 +234,6 @@ def run(
                 pred = [pred, None]
             else:
                 pred = model(im, augment=augment, visualize=visualize)
-                print(pred)
                 
 
         # Print inference time

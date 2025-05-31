@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 
-class dehaze_net(nn.Module):
+class AODNet(nn.Module):
     def __init__(self):
-        super(dehaze_net, self).__init__()
+        super(AODNet, self).__init__()
         self.relu = nn.ReLU(inplace=True)
 
         self.e_conv1 = nn.Conv2d(3, 3, 1, 1, 0, bias=True)
