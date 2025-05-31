@@ -26,6 +26,19 @@ import subprocess
 import sys
 from pathlib import Path
 
+# -- add module : juseok -- #
+
+import cv2
+
+# YOLO 루트 기준으로 경로 추가
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[2]  # remote/Wiper/processing/
+sys.path.append(str(ROOT))
+
+from dehazing.dehazing_utils import apply_dehazing
+
+# -- juseok -- #
+
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -328,6 +341,7 @@ def run(
     pbar = tqdm(dataloader, desc=s, bar_format=TQDM_BAR_FORMAT)  # progress bar
     for batch_i, (im, targets, paths, shapes) in enumerate(pbar):
         callbacks.run("on_val_batch_start")
+        
         with dt[0]:
             if cuda:
                 im = im.to(device, non_blocking=True)
@@ -335,6 +349,42 @@ def run(
             im = im.half() if half else im.float()  # uint8 to fp16/32
             im /= 255  # 0 - 255 to 0.0 - 1.0
             nb, _, height, width = im.shape  # batch size, channels, height, width
+            
+            ## -- dehazing : juseok -- #
+            
+            # nb, _, h, w = im.shape  # nb=batch size
+
+            # # (A) im → (B, H, W, 3) uint8 RGB 복원 → BGR 변환
+            # im_cpu = im.detach().cpu().clone()                              # (B, 3, H, W), float32
+            # im_np = (im_cpu * 255.0).byte().permute(0, 2, 3, 1).numpy()     # (B, H, W, 3), uint8 RGB
+
+            # dehazed_batch = []
+            # for i in range(nb):
+            #     # RGB→BGR
+            #     frame_bgr = cv2.cvtColor(im_np[i], cv2.COLOR_RGB2BGR)       # (H, W, 3), uint8
+            #     # Dehazing (640×360으로 리사이즈+추론 완료)
+            #     dh = apply_dehazing(frame_bgr)                              # (360, 640, 3), uint8 BGR
+                
+            #     dh_640 = cv2.resize(dh, (imgsz[1], imgsz[0]))  
+            #     dehazed_batch.append(dh_640)
+
+            #     # (B) 리스트 → numpy 배열 (B, 360, 640, 3) uint8 BGR
+            #     dehazed_batch = np.stack(dehazed_batch, axis=0)
+
+            #     # (C) (B, 360, 640, 3) BGR uint8 → RGB float [0,1] → tensor (B, 3, 360, 640)
+            #     im_dh_tensors = []
+            #     for i in range(nb):
+            #         rgb = cv2.cvtColor(dehazed_batch[i], cv2.COLOR_BGR2RGB)    # (360, 640, 3), uint8 RGB
+            #         rgb = rgb.astype(np.float32) / 255.0                       # (360, 640, 3), float32 [0,1]
+            #         tensor = torch.from_numpy(rgb).permute(2, 0, 1)            # (3, 360, 640), float32
+            #         im_dh_tensors.append(tensor)
+
+            #     # (D) 스택 / device 업로드 / half (FP16) 적용
+            #     im = torch.stack(im_dh_tensors, dim=0).to(device)         # (B, 3, 360, 640)
+            #     if half:
+            #         im = im.half() 
+            
+            ## -- juseok -- #
 
         # Inference
         with dt[1]:
