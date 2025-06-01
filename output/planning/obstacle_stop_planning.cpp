@@ -78,31 +78,24 @@ std::vector<DetectedObject> read_shared_objects(int frame_id) {
 }
 
 // wet 환경 제동 거리
-double calculate_braking_distance(const DetectedObject& obj, double ego_velocity, int weather) {
+double calculate_braking_distance(const DetectedObject& obj, double ego_velocity_kmph, int weather) {
     double fc = 0.8f; // 디폴트 마찰계수 0.8
     if (weather == 1) {
         fc = 0.4f;    // 비옴 마찰계수 0.4
     }
-    double vehicle_distance = ego_velocity * 1000 / 3600; // 차량 1초 동안 가는 거리 공식
+    double vehicle_distance = ego_velocity_kmph * 1000 / 3600; // 차량 1초 동안 가는 거리 공식
     double braking_distance = pow(vehicle_distance, 2) / (2 * fc * GRAVITY);
     double reaction_distance = vehicle_distance * 0.1; // 반응 거리 시스템 안전성을 위해 0.1
     braking_distance = braking_distance + reaction_distance;
     return braking_distance;
 }
 // 주행 추종 함수
-void match_object_speed(double object_speed_mps) {
-    std::cout << "객체 속도에 맞춰 주행 시작... 대상 속도: " << object_speed_mps << " m/s\n";
-    const double dt = 0.1;
-    double total_distance = 0.0;
-    double time_elapsed = 0.0;
+void match_object_speed(const DetectedObject& obj, double ego_velocity_kmph, double object_speed_mps, int weather) {
+    double distance_m = obj.manual_distance;
+    double safe_distance = calculate_braking_distance(obj, ego_velocity_kmph, ,weather);
 
-    for (int i = 0; i < 50; ++i) {
-        double step = object_speed_mps * dt;
-        total_distance += step;
-        time_elapsed += dt;
-
-        std::cout << "[t=" << time_elapsed << "s] 속도: " << object_speed_mps << " m/s, 이동 거리: " << step << " m\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if (distance_m + 5.0 <= safe_distance) {
+        std::cout << "객체 속도에 맞춰 주행 시작... 대상 속도: " << object_speed_mps << " m/s\n";
     }
 }
 // 객체 속도 추정 -> 제어 신호 생성 (함수명 바꾸자)
