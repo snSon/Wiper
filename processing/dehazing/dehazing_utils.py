@@ -12,13 +12,29 @@ from dehazing.AOD.AOD import AODNet
 # 모델 및 설정 초기화 (1회만)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# JetDehaze 가져오기
+
+
+#------ JetDehaze or AOD 선택하기 ---------#
+
+
+
+## JetDehaze 가져오기
 # model = JetDehazeNet().to(device)
 # MODEL_PATH = os.path.join(os.path.dirname(__file__), "JetDehaze/JetDehaze.pth")
+
+
+
 
 # AOD 가져오기
 model = AODNet().to(device)
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "AOD/AOD_NET.pth")
+
+
+
+#------ JetDehaze or AOD 선택하기 ---------#
+
+
+
 
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
