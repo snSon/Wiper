@@ -36,7 +36,7 @@ struct DetectedObject {
     float y_center;     // 인식 객체 박스 가운데 y
     float bbox_width;   // 바운딩 박스 폭 (픽셀)
     float bbox_height;  // 바운딩 박스 높이 (픽셀)
-    double manual_distance = -1.0; // 거리값
+    double manual_distance = 100.0; // 거리값
 };
 
 // 대상 객체인지 판별
