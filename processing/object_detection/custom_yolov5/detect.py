@@ -44,6 +44,7 @@ ROOT = FILE.parents[2]  # remote/Wiper/processing/
 sys.path.append(str(ROOT))
 
 from dehazing.dehazing_utils import apply_dehazing
+from dehazing.dehazing_utils import apply_dehazing_tensor
 
 # -- juseok -- #
 
@@ -83,7 +84,7 @@ def run(
     weights=ROOT / "yolov5s.pt",  # model path or triton URL
     source=ROOT / "data/images",  # file/dir/URL/glob/screen/0(webcam)
     data=ROOT / "data/coco128.yaml",  # dataset.yaml path
-    imgsz=(640, 640),  # inference size (height, width)
+    imgsz=640,  # inference size (height, width)
     conf_thres=0.25,  # confidence threshold
     iou_thres=0.45,  # NMS IOU threshold
     max_det=1000,  # maximum detections per image
@@ -163,11 +164,11 @@ def run(
     source = str(source)
     save_img = not nosave and not source.endswith(".txt")  # save inference images
     is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
-    is_url = source.lower().startswith(("rtsp://", "rtmp://", "http://", "https://"))
-    webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
-    screenshot = source.lower().startswith("screen")
-    if is_url and is_file:
-        source = check_file(source)  # download
+    # is_url = source.lower().startswith(("rtsp://", "rtmp://", "http://", "https://"))
+    # webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
+    # screenshot = source.lower().startswith("screen")
+    # if is_url and is_file:
+    #     source = check_file(source)  # download
 
     # Directories
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
@@ -182,14 +183,15 @@ def run(
 
     # Dataloader
     bs = 1  # batch_size
-    if webcam:
-        view_img = check_imshow(warn=True)
-        dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
-        bs = len(dataset)
-    elif screenshot:
-        dataset = LoadScreenshots(source, img_size=imgsz, stride=stride, auto=pt)
-    else:
-        dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
+    # if webcam:
+    #     view_img = check_imshow(warn=True)
+    #     dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
+    #     bs = len(dataset)
+    # elif screenshot:
+    #     dataset = LoadScreenshots(source, img_size=imgsz, stride=stride, auto=pt)
+    # else:
+    dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
+    print(imgsz)
     vid_path, vid_writer = [None] * bs, [None] * bs
 
     # Run inference
@@ -197,14 +199,31 @@ def run(
     seen, windows, dt = 0, [], (Profile(device=device), Profile(device=device), Profile(device=device))
     for path, im, im0s, vid_cap, s in dataset:
         ## -- dehazing : juseok -- #
-        if webcam:
-            im0 = im0s[i].copy()
-        else:
-            im0 = im0s.copy()
+        # if webcam:
+        #     im0 = im0s[i].copy()
+        # else:
+        im0 = im0s.copy()
         
         # dehazing 적용
         im0 = apply_dehazing(im0)
         
+        # BGR → RGB, HWC → CHW, [0–255] → [0–1]
+        # img = im0[..., ::-1]  # BGR to RGB
+        # img = np.transpose(img, (2, 0, 1))  # HWC to CHW
+        # img = np.ascontiguousarray(img)
+        # im_tensor = torch.from_numpy(img).to(model.device).float() / 255.0
+        # im_tensor = im_tensor.unsqueeze(0)  # [1, 3, H, W]
+
+        # # Dehazing (텐서 입력)
+        # im_tensor = apply_dehazing_tensor(im_tensor)
+
+        # # 🔧 여기에 차원 검사 + 보정 추가
+        # if im_tensor.ndim == 3:
+        #     im_tensor = im_tensor.unsqueeze(0)
+
+        # # Half precision 적용
+        # im_tensor = im_tensor.half() if model.fp16 else im_tensor
+                
         # -- juseok -- #
         
         with dt[0]:
@@ -224,16 +243,16 @@ def run(
         # Inference
         with dt[1]:
             visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if visualize else False
-            if model.xml and im.shape[0] > 1:
-                pred = None
-                for image in ims:
-                    if pred is None:
-                        pred = model(image, augment=augment, visualize=visualize).unsqueeze(0)
-                    else:
-                        pred = torch.cat((pred, model(image, augment=augment, visualize=visualize).unsqueeze(0)), dim=0)
-                pred = [pred, None]
-            else:
-                pred = model(im, augment=augment, visualize=visualize)
+            # if model.xml and im.shape[0] > 1:
+            #     pred = None
+            #     for image in ims:
+            #         if pred is None:
+            #             pred = model(image, augment=augment, visualize=visualize).unsqueeze(0)
+            #         else:
+            #             pred = torch.cat((pred, model(image, augment=augment, visualize=visualize).unsqueeze(0)), dim=0)
+            #     pred = [pred, None]
+            # else:
+            pred = model(im, augment=augment, visualize=visualize)
                 
 
         # Print inference time
@@ -265,11 +284,11 @@ def run(
         # Process predictions
         for i, det in enumerate(pred):  # per image
             seen += 1
-            if webcam:  # batch_size >= 1
-                p, frame = path[i], dataset.count
-                s += f"{i}: "
-            else:
-                p, frame = path, getattr(dataset, "frame", 0)
+            # if webcam:  # batch_size >= 1
+            #     p, frame = path[i], dataset.count
+            #     s += f"{i}: "
+            #else:
+            p, frame = path, getattr(dataset, "frame", 0)
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg

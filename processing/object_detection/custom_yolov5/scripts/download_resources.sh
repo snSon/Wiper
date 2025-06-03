@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
 VIDEO_DIR="$SCRIPT_DIR/videos"
 MODEL_PATH="$SCRIPT_DIR/models/yolov5s.pt"
 YAML_PATH="$SCRIPT_DIR/models/yolov5s.yaml"
-VIDEO_PATH="$VIDEO_DIR/test_drive_30.mp4"
+VIDEO_PATH="$VIDEO_DIR/4_reencoded.mp4"
 
 # Google Drive 파일 ID
 VIDEO_ID="1iNMtI-X5bhbP7aOyfMDur5eOHAvCnaxM"

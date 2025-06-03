@@ -40,8 +40,17 @@ model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
 to_tensor = transforms.ToTensor()
 
+def apply_dehazing_tensor(img_tensor: torch.Tensor):
+    """
+    Apply dehazing to a normalized torch tensor image in shape (1, 3, H, W) with values in [0, 1].
+    Returns a dehazed tensor in the same shape.
+    """
+    with torch.no_grad():
+        output_tensor = model(img_tensor.to(device))
+    return output_tensor.clamp(0, 1)
+
 def apply_dehazing(frame_bgr):
-    frame_bgr = cv2.resize(frame_bgr, (640, 360))
+    #frame_bgr = cv2.resize(frame_bgr, (640, 640))
     h, w = frame_bgr.shape[:2]
     rgb_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
     
