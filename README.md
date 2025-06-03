@@ -1,29 +1,72 @@
 # Wiper 🚗☔️
 
-> A lightweight dehazing-based RC car project for enhancing autonomous driving in adverse weather conditions.
+악천후 환경에서 자율주행 시스템의 인식 정확도와 대응 능력을 향상시키기 위한 경량화 기술 개발 프로젝트
 
 ---
 
-## 📌 Project Overview
+## 📌 프로젝트 개요
 
-To be added
+본 프로젝트는 악천후, 특히 **안개 상황**에서 자율주행 시스템의 인식 성능 저하 문제를 해결하고자,  
+**디헤이징 모델(자체 제작 모델델)**, **객체 인식 모델(YOLOv5s)**, **제어 처리 시스템**을  
+**Edge 디바이스(Jetson Orin Nano)** 환경에 최적화하는 데 중점을 두고 진행되었습니다.
 
 ---
 
-## 🧠 Key Features
+## 🧠 주요 기술
+### 디헤이징 모델 경량화 및 개선**   
+    안개 낀 환경에서 선명한 이미지를 복원하여 인식 성능 개선   
+    → Edge 디바이스에서도 실시간으로 작동 가능하도록 최적화
 
-To be added
+### **YOLOv5s 모델 최적화**   
+    yolov5s.pt → ONNX → TensorRT `engine` 변환
+    → 추론 시간 단축, GPU 리소스 절약, 성능 유지
+
+### **인식 →  제어 흐름 구축**
+    객체 인식 결과 바탕으로 실제 제어 명령 생성
+    → 
 
 ### 🔧 Hardware
-
-To be added
+- Jetson Orin Nano  
+- 기타 센서 및 제어 모듈
 
 ### 💻 Software
 
-To be added
-
----
+<!-- 내용 추가 예정 -->
+- Python 3.8  
+- PyTorch  
+- TensorRT  
+- OpenCV 외
 
 ## 🏗️ Project Structure
 
-To be added
+<!-- 예시 -->
+├── dehazing/   
+├── detection/   
+├── control/   
+├── demo/   
+├── README.md   
+└── ...   
+
+## 디헤이징 모델 성능 요약 
+> (추후 PSNR, SSIM 등 정량 지표 추가 예정)
+
+## 객체 인식 성능 요약
+| 항목               | FP16 pt 모델 | FP16 엔진 모델 | 기존 대비 성능 |
+|--------------------|--------------|----------------|----------------|
+| FPS                | 20.32        | 63.08          | + 210.5% (개선)|
+| Inference Time(ms) | 51.07        | 9.62           | - 81.2%  (개선)|
+| Precision          | 0.715        | 0.6799         | - 4.91%  (감소)|
+| mAP@0.5            | 0.7079       | 0.7087         | + 0.11% ≈ 동일 |
+
+## 데모
+> 영상 파일 또는 유튜브 링크 삽입 
+
+## 개발 환경
+- Jetson Orin Nano (JetPack 5.1.2)
+- Python 3.8
+- PyTorch, TensorRT
+- YOLOv5s
+- AODNet
+
+## 라이선스
+[MIT License](LICENSE)
