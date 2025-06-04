@@ -35,8 +35,9 @@ import platform
 import sys
 from pathlib import Path
 
-# -- add module : juseok -- #
+# -- add module : juseok, jiwan -- #
 import numpy as np
+import time
 
 # YOLO 루트 기준으로 경로 추가
 FILE = Path(__file__).resolve()
@@ -175,7 +176,6 @@ def run(
 
     # Load model
     device = select_device(device)
-    # jiwan
     model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
     stride, names, pt = model.stride, model.names, model.pt
     imgsz = check_img_size(imgsz, s=stride)  # check image size
@@ -195,15 +195,17 @@ def run(
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(device=device), Profile(device=device), Profile(device=device))
+    # prev_frame_time = 0 # Init previous frame time (jiwan)
     for path, im, im0s, vid_cap, s in dataset:
+        # curr_frame_time = time.time() # jiwan: Get current frame time
         ## -- dehazing : juseok -- #
         if webcam:
             im0 = im0s[i].copy()
         else:
             im0 = im0s.copy()
         
-        # dehazing 적용
-        im0 = apply_dehazing(im0)
+        # # dehazing 적용
+        # im0 = apply_dehazing(im0)
         
         # -- juseok -- #
         
@@ -317,6 +319,28 @@ def run(
 
             # Stream results
             im0 = annotator.result()
+
+            """====== jiwan: Calculate FPS ====="""
+            # frame_rate_overall = 1 / (curr_frame_time - prev_frame_time)
+            # prev_frame_time = curr_frame_time
+
+            # # 화면에 표시할 FPS 문자열
+            # fps_str = f"Overall FPS: {frame_rate_overall:.2f}"
+
+            # # Get the height of the letterbox
+            # letterbox_height = int((im0.shape[0] - imgsz[0]) / 2) if im0.shape[0] > imgsz[0] else 0
+
+            # # Calculate the position to draw the FPS text
+            # text_x = im0.shape[1] - 300  # Right side of the image
+            # text_y = letterbox_height + 30  # Below the letterbox
+
+            # # Draw FPS on the image
+            # cv2.putText(im0, fps_str, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            
+            # with open(save_dir / "results.txt", "a") as f:
+            #     f.write(f"{s}Done. ({frame_rate_overall:.2f} FPS)\n")
+            """====== jiwan: Calculate FPS ====="""
+
             if view_img:
                 if platform.system() == "Linux" and p not in windows:
                     windows.append(p)
