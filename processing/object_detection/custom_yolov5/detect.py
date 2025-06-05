@@ -195,9 +195,9 @@ def run(
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(device=device), Profile(device=device), Profile(device=device))
-    # prev_frame_time = 0 # Init previous frame time (jiwan)
+    prev_frame_time = 0 # Init previous frame time (jiwan)
     for path, im, im0s, vid_cap, s in dataset:
-        # curr_frame_time = time.time() # jiwan: Get current frame time
+        curr_frame_time = time.time() # jiwan: Get current frame time
         ## -- dehazing : juseok -- #
         if webcam:
             im0 = im0s[i].copy()
@@ -205,7 +205,7 @@ def run(
             im0 = im0s.copy()
         
         # # dehazing 적용
-        # im0 = apply_dehazing(im0)
+        im0 = apply_dehazing(im0)
         
         # -- juseok -- #
         
@@ -239,9 +239,9 @@ def run(
                 
 
         # Print inference time
-        inference_time = dt[1].dt  # 추론 시간 (sec)
-        with open(save_dir / "results.txt", "a") as f:
-            f.write(f"inference: {inference_time:.3f}s\n")
+        inference_time = dt[1].dt * 1000 # 추론 시간 (ms)
+        with open(save_dir / "detect_results.txt", "a") as f:
+            f.write(f"inference: {inference_time:.2f}ms\n")
 
         # NMS
         with dt[2]:
@@ -321,10 +321,10 @@ def run(
             im0 = annotator.result()
 
             """====== jiwan: Calculate FPS ====="""
-            # frame_rate_overall = 1 / (curr_frame_time - prev_frame_time)
-            # prev_frame_time = curr_frame_time
+            frame_rate_overall = 1 / (curr_frame_time - prev_frame_time)
+            prev_frame_time = curr_frame_time
 
-            # # 화면에 표시할 FPS 문자열
+            # 화면에 표시할 FPS 문자열
             # fps_str = f"Overall FPS: {frame_rate_overall:.2f}"
 
             # # Get the height of the letterbox
@@ -337,8 +337,8 @@ def run(
             # # Draw FPS on the image
             # cv2.putText(im0, fps_str, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             
-            # with open(save_dir / "results.txt", "a") as f:
-            #     f.write(f"{s}Done. ({frame_rate_overall:.2f} FPS)\n")
+            with open(save_dir / "detect_results.txt", "a") as f:
+                f.write(f"total_pipeline_fps:{frame_rate_overall:.2f} FPS\n")
             """====== jiwan: Calculate FPS ====="""
 
             if view_img:

@@ -98,7 +98,7 @@ else:
     exit(1)
 
 # 추론 시간 파싱
-log_file = os.path.join(exp_dir, "results.txt")
+log_file = os.path.join(exp_dir, "detect_results.txt")
 inference_times = []
 overall_fps_values = [] # 전체 FPS 값을 저장할 리스트 추가 (디헤이징 + 객체 인식)
 
@@ -106,25 +106,24 @@ if os.path.exists(log_file):
     with open(log_file, 'r') as f:
         for line in f:
             # 순수 추론 시간 파싱
-            inference_match = re.search(r"inference:\s*(\d+\.\d+)s", line)
+            inference_match = re.search(r"inference:\s*(\d+\.\d+)ms", line)
             if inference_match:
                 inference_times.append(float(inference_match.group(1)))
 
             # 전체 파이프라인 FPS 파싱 (새로 추가된 부분)
-            overall_fps_match = re.search(r"overall_fps:\s*(\d+\.\d+)", line)
+            overall_fps_match = re.search(r"total_pipeline_fps:\s*(\d+\.\d+)", line)
             if overall_fps_match:
                 overall_fps_values.append(float(overall_fps_match.group(1)))
 
 # 순수 추론 FPS 계산
 avg_inference_time = statistics.mean(inference_times) if inference_times else 0
-pure_inference_fps = 1 / avg_inference_time if avg_inference_time else 0 # 변수명 변경
+pure_inference_fps = 1000 / avg_inference_time if avg_inference_time else 0 # 변수명 변경
 
 # 전체 파이프라인 FPS 계산
 avg_overall_fps = statistics.mean(overall_fps_values) if overall_fps_values else 0
 
-
 # 리소스 로그 저장
-log_path = os.path.join(exp_dir, "resource_log.txt")
+log_path = os.path.join(exp_dir, "detect_resource.txt")
 with open(log_path, "w") as log_file:
     log_file.write("GPU 사용률 로그:\n")
     log_file.write(f"gpu_avg = {gpu_avg}, gpu_max = {gpu_max}\n\n")
@@ -134,12 +133,12 @@ with open(log_path, "w") as log_file:
 # 누적 로그 저장
 log_txt = os.path.join(BASE_DIR, "detect_log.txt")
 with open(log_txt, "a") as f:
-    f.write(f"\n--- Experiment: {exp_name} ---\n")
-    f.write(f"Pure Inference FPS:          {round(pure_inference_fps, 2)}\n") # 순수 추론 FPS
-    f.write(f"Overall Pipeline FPS:        {round(avg_overall_fps, 2)}\n") # 전체 파이프라인 FPS 추가
-    f.write(f"Inference Time(ms):   {avg_inference_time * 1000:.2f}\n")
-    f.write(f"GPU 사용률 평균(%):     {gpu_avg}\n")
-    # f.write(f"GPU 최대 사용률(%):     {gpu_max}\n")
-    # f.write(f"RAM 평균 사용량(MB):    {ram_avg}\n")
-    f.write(f"RAM 최대 사용량(MB):    {ram_max}\n")
-    f.write(f"-------------------------------\n")
+    f.write(f"\n==== Experiment: {exp_name} ====\n")
+    f.write(f"Pure Inference (FPS): {round(pure_inference_fps, 2)}\n") # 순수 추론 FPS
+    f.write(f"Total Pipeline (FPS): {round(avg_overall_fps, 2)}\n") # 전체 파이프라인 FPS 추가
+    f.write(f"Inference Time  (ms): {avg_inference_time:.2f}\n")
+    f.write(f"GPU 사용률 평균   (%): {gpu_avg}\n")
+    # f.write(f"GPU 최대 사용률 (%): {gpu_max}\n")
+    # f.write(f"RAM 평균 사용량 (MB): {ram_avg}\n")
+    f.write(f"RAM 최대 사용량  (MB): {ram_max}\n")
+    f.write(f"=====================================\n")
