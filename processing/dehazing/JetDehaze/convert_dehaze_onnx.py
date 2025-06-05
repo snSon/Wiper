@@ -11,7 +11,7 @@ model.load_state_dict(torch.load("JetDehaze.pth", map_location="cpu"))
 model.eval()
 
 # 2. 입력 샘플 정의
-dummy_input = torch.randn(1, 3, 256, 256)  # 입력 크기 맞게 수정 가능
+dummy_input = torch.randn(1, 3, 240, 320)  # 입력 크기 맞게 수정 가능
 
 # 3. ONNX export
 torch.onnx.export(
