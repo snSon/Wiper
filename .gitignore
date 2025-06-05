@@ -1,2 +1,5 @@
 processing/**/__pycache__/
 processing/**/*.mp4
+**/*.onnx
+**/*.engine
+**/*.log
