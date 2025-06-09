@@ -45,7 +45,7 @@ ROOT = FILE.parents[2]  # remote/Wiper/processing/
 sys.path.append(str(ROOT))
 
 from dehazing.dehazing_utils import apply_dehazing
-from dehazing.dehzazing_tensorRT_utils import apply_dehazing_tensorrt
+from dehazing.dehazing_tensorRT_utils import apply_dehazing_tensorrt
 # -- juseok -- #
 
 import torch
