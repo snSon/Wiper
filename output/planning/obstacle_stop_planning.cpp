@@ -19,64 +19,78 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <cstring>
-// 거리 데이터 헤더파일 프레임 307개 기준
+#include <fstream>
+// 거리 데이터 헤더파일
 #include "frame_distances.hpp"
+// 사용할 객체 인식 로그 위치 
+const std::string LOG_DIR = "/home/hanul/Wiper_workspace/junyeong/planning/test/foggy_de_2";
 
 const float GRAVITY = 9.8;     // 중력 가속도
 const int MAX_OBJECTS = 20; // 인식 객체 최대수
-const int FRAME_COUNT = 932; // 영상의 프레임 수
-const char* shm_name = "/detection_buffer";
+const int FRAME_COUNT = 424; // 영상의 프레임 수
+
 // 실제 데이터를 기준으로 변경
-const float ref_x = 0.37f;  // 기준 차의 bbox x_center
-const float ref_y = 0.45f;  // 기준 차의 bbox y_center
-const float tolerance = 0.03f; // 기준 허용 오차
+const float ref_x = 970.0f;  // 기준 차의 bbox x_center
+const float ref_y = 720.0f;  // 기준 차의 bbox y_center
+const float tolerance = 20.0f; // 기준 허용 오차
 
 struct DetectedObject {
     float x_center;     // 인식 객체 박스 가운데 x 
     float y_center;     // 인식 객체 박스 가운데 y
     float bbox_width;   // 바운딩 박스 폭 (픽셀)
     float bbox_height;  // 바운딩 박스 높이 (픽셀)
-    double manual_distance = 100.0; // 거리값
+    float confidence;
+    double manual_distance = 100.0;  // 초기 거리값
 };
-
+// 로그 저장 함수
+void save_log(int frame, const DetectedObject& obj, const std::string& decision) {
+    std::ofstream log_file("/home/hanul/Wiper_workspace/junyeong/planning/test/control_log/foggy_de_2_log.txt", std::ios::app); // append 모드
+    if (!log_file.is_open()) {
+        std::cerr << "[오류] 로그 파일 열기 실패\n";
+        return;
+    }
+    if (obj.manual_distance != 100.0) {
+        log_file << "[프레임 " << frame << "] "
+            << "거리: " << std::fixed << std::setprecision(2) << obj.manual_distance << " m, "
+            << "x_center: " << obj.x_center << ", "
+            << "y_center: " << obj.y_center << ", "
+            << "판단: " << decision << "\n";
+    }
+    log_file.flush(); 
+    log_file.close();
+}
 // 대상 객체인지 판별
 bool is_target_object(const DetectedObject& obj) {
     return std::abs(obj.x_center - ref_x) < tolerance &&
            std::abs(obj.y_center - ref_y) < tolerance;
 }
 
-// 공유 메모리에서 객체 목록 읽기
-std::vector<DetectedObject> read_shared_objects(int frame_id) {
-    size_t OBJECT_SIZE = sizeof(DetectedObject);
-    size_t FRAME_SIZE = MAX_OBJECTS * OBJECT_SIZE;
+// 객체 인식 로그 파일 읽기
+std::vector<DetectedObject> load_objects_from_log(int frame_id) {
+    std::vector<DetectedObject> objects;
+    std::ostringstream filepath;
+    filepath << LOG_DIR << "/frame_" << std::setw(3) << std::setfill('0') << frame_id << ".txt";
 
-    int shm_fd = shm_open(shm_name, O_RDONLY, 0666);
-    if (shm_fd == -1){
-        std::cerr << "공유 메모리 열기 실패" << std::endl;
-        exit(1);
+    std::ifstream file(filepath.str());
+    if (!file.is_open()) {
+        std::cerr << "[경고] 로그 파일 열기 실패: " << filepath.str() << "\n";
+        return objects;
     }
 
-    void* ptr = mmap(0, FRAME_COUNT * FRAME_SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
-    if (ptr == MAP_FAILED) {
-        std::cerr << "mmap 실패" << std::endl;
-        exit(1);
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        DetectedObject obj;
+        if (!(ss >> obj.class_id >> obj.x_center >> obj.y_center >>
+              obj.bbox_width >> obj.bbox_height >> obj.confidence)) {
+            std::cerr << "[경고] 파싱 실패한 줄: " << line << "\n";
+            continue;
+        }
+        objects.push_back(obj);
     }
 
-
-    DetectedObject* objects_all = static_cast<DetectedObject*>(ptr);
-    DetectedObject* frame_ptr = objects_all + frame_id * MAX_OBJECTS;
-
-    std::vector<DetectedObject> result;
-    for(int i = 0; i < MAX_OBJECTS; ++i) {
-        if (frame_ptr[i].bbox_height <= 0.0f) break;
-        result.push_back(frame_ptr[i]);
-    }
-
-    munmap(ptr, FRAME_COUNT * FRAME_SIZE);
-    close(shm_fd);
-    return result;
+    return objects;
 }
-
 // wet 환경 제동 거리
 double calculate_braking_distance(const DetectedObject& obj, double ego_velocity_kmph, int weather) {
     double fc = 0.8f; // 디폴트 마찰계수 0.8
@@ -98,8 +112,8 @@ void match_object_speed(const DetectedObject& obj, double ego_velocity_kmph, dou
         std::cout << "객체 속도에 맞춰 주행 시작... 대상 속도: " << object_speed_mps << " m/s\n";
     }
 }
-// 객체 속도 추정 -> 제어 신호 생성 (함수명 바꾸자)
-void control_signal(const DetectedObject& obj, double ego_velocity_kmph, int weather) {
+// 객체 속도 추정 -> 제어 신호 생성
+void control_signal(const DetectedObject& obj, double ego_velocity_kmph, int weather, int frame) {
     // 인식된 객체 속도 0으로 함
     double relative_speed = 0.0f;
 
@@ -107,17 +121,20 @@ void control_signal(const DetectedObject& obj, double ego_velocity_kmph, int wea
     double safe_distance = calculate_braking_distance(obj, ego_velocity_kmph, weather);
     // 객체와의 거리
     double distance_m = obj.manual_distance;
-    std::cout << std::fixed << std::setprecision(2)
-              << "[데이터] 거리: " << distance_m << " m / 제동 안전 거리: " << safe_distance << " m\n";
-
+    if (distance_m != 100.0f) {
+        std::cout << std::fixed << std::setprecision(2)
+            << "[데이터] 거리: " << distance_m << " m / 제동 안전 거리: " << safe_distance << " m\n";
+    }
+    std::string decision;
     // 거리 + 속도 기반
     if (distance_m <= (safe_distance + 5.0) && std::abs(relative_speed) < 1.0) {
+        decision = "감속 후 정지";
         std::cout << "[판단] 전방에 멈춘 객체 인식 → 감속 후 정지 시작\n";
-        // simulate_braking(ego_velocity_kmph, distance_m);
     }
     else {
+        decision = "속도 맞춰 추종";
         std::cout << "[판단] 주행 중인 객체 → 속도 맞춰 추종\n";
-        match_object_speed(relative_speed);
+        match_object_speed(obj, ego_velocity_kmph, relative_speed, weather);
     }
 }
 
@@ -126,7 +143,7 @@ int main() {
     for (int frame = 0; frame < FRAME_COUNT; ++frame) {
         std::cout << "\n========================\n";
         std::cout << "[프레임 " << frame << "]\n";
-        auto objects = read_shared_objects(frame);
+        auto objects = load_objects_from_log(frame);
         if(objects.empty()) {
             std::cout << "[정보] 유효한 객체 없음.\n";
             continue;
@@ -141,7 +158,7 @@ int main() {
             }
             // 일반 = 0, 비옴 = 1
             int weather = 1;
-            control_signal(obj, 60.0f, weather);
+            control_signal(obj, 60.0f, weather, frame);
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
         }
     }
