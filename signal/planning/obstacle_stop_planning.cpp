@@ -23,7 +23,7 @@
 // 거리 데이터 헤더파일
 #include "frame_distances.hpp"
 // 사용할 객체 인식 로그 위치 
-const std::string LOG_DIR = "/home/hanul/Wiper_workspace/junyeong/planning/test/foggy_de_2";
+const std::string LOG_DIR = "/detect_log";
 
 const float GRAVITY = 9.8;     // 중력 가속도
 const int MAX_OBJECTS = 20; // 인식 객체 최대수
@@ -44,7 +44,7 @@ struct DetectedObject {
 };
 // 로그 저장 함수
 void save_log(int frame, const DetectedObject& obj, const std::string& decision) {
-    std::ofstream log_file("/home/hanul/Wiper_workspace/junyeong/planning/test/control_log/foggy_de_2_log.txt", std::ios::app); // append 모드
+    std::ofstream log_file("/control_log/control_log.txt", std::ios::app); // append 모드
     if (!log_file.is_open()) {
         std::cerr << "[오류] 로그 파일 열기 실패\n";
         return;
