@@ -1,10 +1,6 @@
 # Obstacle Stop Planning
 
----
-
 ## 모듈 개요
-
----
 
 ### 모듈 소개
 
@@ -20,7 +16,7 @@
 - 대상 객체 이동 중 → 대상 속도 추종 결정  
 - 판단 결과 및 거리 정보를 로그로 저장  
 
----
+
 
 ## 디렉토리 구조
 
@@ -37,10 +33,9 @@ project_root/
 
 # 핵심 구현 내용
 
----
 
 ## 주요 함수 구현 내용
----
+
 
 ### control_signal()
 
@@ -131,13 +126,13 @@ std::abs(obj.y_center - ref_y) < tolerance;
     - 비오는 날 : 1
 4. 판단 수행 함수 호출
 
----
+
 
 # 실행 가이드
----
+
 
 ## 1. 수동 거리 데이터 입력
----
+
 - 대상 거리 frame_distances.hpp를 아래의 형식에 맞추어 넣습니다.
 ```cpp
 #pragma once
@@ -151,7 +146,7 @@ const std::unordered_map<int, double> frame_to_distance = {
 - {프레임 번호, 거리값}
 
 ## 2. 프레임 별 객체 인식 로그 입력
----
+
 - yolo.py 에서 입력 영상에 객체에 대한 프레임 별 객체 인식 로그 생성 
 ```bash
 python3 yolo.py
@@ -175,7 +170,7 @@ const std::string LOG_DIR = "/detect_log";
 ```
 
 ## 3. 실행
----
+
 - 모든 파일이 준비되었다면 아래의 명령어를 통해 실행시킵니다.
 ```bash
 g++ -o obstacle_stop_planning obstacle_stop_planning.cpp -lrt && ./obstacle_stop_planning
