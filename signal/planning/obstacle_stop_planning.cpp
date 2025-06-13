@@ -175,7 +175,7 @@ void match_object_speed(const DetectedObject& obj, double ego_velocity_kmph, dou
         std::cout << "객체 속도에 맞춰 주행 시작... 대상 속도: " << object_speed_mps << " m/s\n";
     }
 }
-// 객체 속도 추정 -> 제어 신호 생성 (함수명 바꾸자)
+// 객체 속도 추정 -> 제어 신호 생성
 void control_signal(const DetectedObject& obj, double ego_velocity_kmph, int weather, int frame) {
     // 인식된 객체 속도 0으로 함
     double relative_speed = 0.0f;
