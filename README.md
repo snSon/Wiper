@@ -66,9 +66,9 @@
 
 ## 필요 구현
 
-### 1. 디헤이징 모델 개발 및 개선 ( 준현이가 수정 필요)
+### 1. 디헤이징 모델 개발 및 개선 
 
-* AODNet 기반 구조 분석 후, Conv 채널 수 축소 및 Layer Depth 최적화
+* 기존 디헤이징 모델들의 attention block과 multiscale block 간소화
 * 기존 대비 PSNR/SSIM 유지하며 추론 속도 3배 이상 개선
 
 ### 2. YOLOv5s 모델 추론 최적화
