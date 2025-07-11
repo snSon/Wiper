@@ -13,7 +13,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 DATA_YAML="$ROOT_DIR/data/kitti.yaml"
 CFG_YAML="$ROOT_DIR/models/yolov5s_kitti.yaml"
-WEIGHTS="$ROOT_DIR/yolov5s_origin.pt"
+WEIGHTS="$ROOT_DIR/models/yolov5s_origin.pt"
 
 # 학습 설정
 IMG_SIZE=640
