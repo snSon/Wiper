@@ -1,60 +1,98 @@
-# 이미지 리스트 셔플 → 80%는 train, 20%는 val
-# images → datasets/kitti_split/images/{train,val}
-# labels → datasets/kitti_split/labels/{train,val}
+#!/usr/bin/env python3
+"""
+KITTI 데이터셋을 train:val:test = 8:1:1 비율로 분할하고,
+train.txt, val.txt, test.txt 및 전체 파일명을 저장한 list.txt 생성
+그리고 각 split별 이미지와 라벨 파일을 복사하는 스크립트
 
+사용법:
+    python kitti_split.py [--src_dir SRC] [--label_dir LABEL] [--dst_dir DST] [--ext EXT] [--seed SEED]
+
+기본 경로:
+  SRC: /workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti/images/
+  LABEL: /workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti/labels/
+  DST: /workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti_split/
+"""
+import argparse
+import os
 import random
-from pathlib import Path
 import shutil
 
-# 원본 KITTI 데이터셋 경로
-BASE_DIR = Path("/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti")
-IMG_DIR = BASE_DIR / "images"
-LAB_DIR = BASE_DIR / "labels"
+def parse_args():
+    parser = argparse.ArgumentParser(description="KITTI 데이터셋 분할 및 복사 스크립트")
+    parser.add_argument('--src_dir', type=str,
+                        default='/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti/images/',
+                        help='원본 이미지 경로 (images 디렉토리)')
+    parser.add_argument('--label_dir', type=str,
+                        default='/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti/labels/',
+                        help='원본 라벨 경로 (labels 디렉토리)')
+    parser.add_argument('--dst_dir', type=str,
+                        default='/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti_split/',
+                        help='분할된 데이터셋 저장 경로')
+    parser.add_argument('--ext', type=str, default='png', help='이미지 확장자 (default: png)')
+    parser.add_argument('--seed', type=int, default=42, help='랜덤 시드 설정 (default: 42)')
+    return parser.parse_args()
 
-# 분할된 데이터 저장 경로
-OUT_BASE = BASE_DIR.parent / "kitti_split"
-OUT_IMG = OUT_BASE / "images"
-OUT_LAB = OUT_BASE / "labels"
+def main():
+    args = parse_args()
+    src = args.src_dir.rstrip('/')
+    label_dir = args.label_dir.rstrip('/')
+    dst = args.dst_dir.rstrip('/')
+    ext = args.ext.lower()
+    random.seed(args.seed)
 
-# 분할 비율 설정
-TRAIN_RATIO = 0.8  # 80% for train, 20% for val
+    # 이미지 목록 수집
+    imgs = [f for f in os.listdir(src) if f.lower().endswith('.' + ext)]
+    imgs.sort()
+    random.shuffle(imgs)
 
-IMG_EXT = ".png"  # 또는 ".jpg"
+    total = len(imgs)
+    if total == 0:
+        print(f"ERROR: {src}에 '*.{ext}' 파일이 없습니다.")
+        return
 
-# 폴더 생성
-for sub in ["train", "val"]:
-    (OUT_IMG / sub).mkdir(parents=True, exist_ok=True)
-    (OUT_LAB / sub).mkdir(parents=True, exist_ok=True)
+    # split 수 계산
+    n_train = int(total * 0.8)
+    n_val = int(total * 0.1)
+    n_test = total - n_train - n_val
 
-# 이미지 파일 리스트 로드 및 셔플
-all_imgs = sorted(IMG_DIR.glob(f"*{IMG_EXT}"))
-random.seed(42)
-random.shuffle(all_imgs)
+    splits = {
+        'train': imgs[:n_train],
+        'val': imgs[n_train:n_train + n_val],
+        'test': imgs[n_train + n_val:]
+    }
 
-# 분할 인덱스 계산
-split_idx = int(len(all_imgs) * TRAIN_RATIO)
-train_imgs = all_imgs[:split_idx]
-val_imgs = all_imgs[split_idx:]
+    # 디렉토리 생성
+    os.makedirs(dst, exist_ok=True)
+    for split in ['train', 'val', 'test']:
+        os.makedirs(os.path.join(dst, 'images', split), exist_ok=True)
+        os.makedirs(os.path.join(dst, 'labels', split), exist_ok=True)
 
-# 파일 복사 함수
-def copy_subset(img_list, subset_name):
-    for img_path in img_list:
-        # 이미지 복사
-        dest_img = OUT_IMG / subset_name / img_path.name
-        shutil.copy(img_path, dest_img)
-        # 라벨 파일 이름
-        lab_name = img_path.stem + ".txt"
-        src_lab = LAB_DIR / lab_name
-        dest_lab = OUT_LAB / subset_name / lab_name
-        # 라벨 복사
-        if src_lab.exists():
-            shutil.copy(src_lab, dest_lab)
-        else:
-            print(f"Warning: Label not found for {img_path.name}")
+    # # 전체 리스트 저장
+    # with open(os.path.join(dst, 'list.txt'), 'w') as f:
+    #     for img in imgs:
+    #         f.write(img + '\n')
 
-# train/val 복사 실행
-print(f"Copying {len(train_imgs)} images to train, {len(val_imgs)} images to val...")
-copy_subset(train_imgs, "train")
-copy_subset(val_imgs, "val")
+    # split별 처리
+    for name, files in splits.items():
+        txt_path = os.path.join(dst, f'{name}.txt')
+        with open(txt_path, 'w') as list_f:
+            for img in files:
+                src_img = os.path.join(src, img)
+                src_label = os.path.join(label_dir, img.replace('.' + ext, '.txt'))
+                dst_img = os.path.join(dst, 'images', name, img)
+                dst_label = os.path.join(dst, 'labels', name, img.replace('.' + ext, '.txt'))
 
-print("Dataset split complete.")
+                # 복사
+                shutil.copy2(src_img, dst_img)
+                if os.path.exists(src_label):
+                    shutil.copy2(src_label, dst_label)
+                else:
+                    print(f"WARNING: 라벨 파일이 없습니다: {src_label}")
+
+                # 리스트에 경로 기록
+                list_f.write(f"{dst_img} {dst_label}\n")
+
+        print(f"[{name}] {len(files)}개 처리 완료 -> {txt_path}")
+
+if __name__ == '__main__':
+    main()
