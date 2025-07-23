@@ -29,7 +29,6 @@ from pathlib import Path
 # -- add module : juseok -- #
 
 import cv2
-
 # YOLO 루트 기준으로 경로 추가
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # remote/Wiper/processing/
@@ -227,6 +226,7 @@ def run(
     plots=True,
     callbacks=Callbacks(),
     compute_loss=None,
+    dehaze=False, # apply dehazing preprocessing (default: False)
 ):
     """
     Evaluates a YOLOv5 model on a dataset and logs performance metrics.
@@ -351,44 +351,44 @@ def run(
             nb, _, height, width = im.shape  # batch size, channels, height, width
             
             ## -- dehazing : juseok -- #
-            
-            # 1) GPU 상의 im 텐서 → CPU float32 → [0,1] → uint8 RGB → BGR 변환
-            im_cpu = im.detach().cpu().clone()  # (B, 3, H, W), float32 or float16
-            # float → [0,255] → uint8
-            im_uint8 = (im_cpu * 255.0).byte()
-            # (B,3,H,W) → (B,H,W,3) 순서로 변환한 뒤 BGR로 바꿔야 함
-            im_np_rgb = im_uint8.permute(0, 2, 3, 1).numpy()            # (B, H, W, 3), uint8 (RGB)
-            dehazed_np_list = []
+            if dehaze:
+                # 1) GPU 상의 im 텐서 → CPU float32 → [0,1] → uint8 RGB → BGR 변환
+                im_cpu = im.detach().cpu().clone()  # (B, 3, H, W), float32 or float16
+                # float → [0,255] → uint8
+                im_uint8 = (im_cpu * 255.0).byte()
+                # (B,3,H,W) → (B,H,W,3) 순서로 변환한 뒤 BGR로 바꿔야 함
+                im_np_rgb = im_uint8.permute(0, 2, 3, 1).numpy()            # (B, H, W, 3), uint8 (RGB)
+                dehazed_np_list = []
 
-            for i in range(nb):
-                # RGB → BGR
-                frame_bgr = cv2.cvtColor(im_np_rgb[i], cv2.COLOR_RGB2BGR)     # (H, W, 3), uint8
+                for i in range(nb):
+                    # RGB → BGR
+                    frame_bgr = cv2.cvtColor(im_np_rgb[i], cv2.COLOR_RGB2BGR)     # (H, W, 3), uint8
 
-                # (A) apply_dehazing: 내부에서 (640×360)로 리사이즈 후 데햐징 → (360×640) 출력
-                dh_bgr_360x640 = apply_dehazing(frame_bgr)                    # (360, 640, 3), uint8 BGR
- 
-                # (B) dehazed된 (360×640) → 원래 모델 입력 크기(예: 640×640)로 리사이즈
-                #     → 만약 imgsz = (640,640)이라면:
-                dh_resized_bgr = cv2.resize(dh_bgr_360x640, (width, height))   # (640, 640, 3), uint8 BGR
-                dehazed_np_list.append(dh_resized_bgr)
- 
-            # (C) 다시 NumPy 리스트 → (B, H, W, 3) uint8 BGR array
-            dehazed_batch_bgr = np.stack(dehazed_np_list, axis=0)  # (B, 640, 640, 3), uint8 BGR
-  
-            # (D) BGR → RGB → float32 [0,1] → tensor로 변환 → GPU로 전송 → FP16/FP32
-            im_dh_tensors = []
-            for i in range(nb):
-                rgb = cv2.cvtColor(dehazed_batch_bgr[i], cv2.COLOR_BGR2RGB)   # (640,640,3), uint8 RGB
-                rgb = rgb.astype(np.float32) / 255.0                         # (640,640,3), float32 [0,1]
-                tensor = torch.from_numpy(rgb).permute(2, 0, 1)               # (3, 640, 640)
-                im_dh_tensors.append(tensor)
+                    # (A) apply_dehazing: 내부에서 (640×360)로 리사이즈 후 데햐징 → (360×640) 출력
+                    dh_bgr_360x640 = apply_dehazing(frame_bgr)                    # (360, 640, 3), uint8 BGR
+    
+                    # (B) dehazed된 (360×640) → 원래 모델 입력 크기(예: 640×640)로 리사이즈
+                    #     → 만약 imgsz = (640,640)이라면:
+                    dh_resized_bgr = cv2.resize(dh_bgr_360x640, (width, height))   # (640, 640, 3), uint8 BGR
+                    dehazed_np_list.append(dh_resized_bgr)
+    
+                # (C) 다시 NumPy 리스트 → (B, H, W, 3) uint8 BGR array
+                dehazed_batch_bgr = np.stack(dehazed_np_list, axis=0)  # (B, 640, 640, 3), uint8 BGR
+    
+                # (D) BGR → RGB → float32 [0,1] → tensor로 변환 → GPU로 전송 → FP16/FP32
+                im_dh_tensors = []
+                for i in range(nb):
+                    rgb = cv2.cvtColor(dehazed_batch_bgr[i], cv2.COLOR_BGR2RGB)   # (640,640,3), uint8 RGB
+                    rgb = rgb.astype(np.float32) / 255.0                         # (640,640,3), float32 [0,1]
+                    tensor = torch.from_numpy(rgb).permute(2, 0, 1)               # (3, 640, 640)
+                    im_dh_tensors.append(tensor)
 
-            # (E) 스택 → GPU로 전송 → FP16/FP32 설정
-            im = torch.stack(im_dh_tensors, dim=0).to(device)                 # (B, 3, 640, 640)
-            if half:
-                im = im.half()
-            else:
-                im = im.float()
+                # (E) 스택 → GPU로 전송 → FP16/FP32 설정
+                im = torch.stack(im_dh_tensors, dim=0).to(device)                 # (B, 3, 640, 640)
+                if half:
+                    im = im.half()
+                else:
+                    im = im.float()
    
             ## -- juseok -- #
 
@@ -523,7 +523,7 @@ def run(
 
     latency = t[0] + t[1] + t[2]
     fps = 1000 / latency
-    summary_file = ROOT / "runs" / "val" / "all_results.txt"
+    summary_file = ROOT / "runs" / "val" / "val_log.txt"
     with open(summary_file, "a") as f:
         f.write(f"\n--- Experiment: {save_dir.name} start ---\n")
         f.write(f"Precision:       {mp:.4f}\n")
@@ -610,6 +610,7 @@ def parse_opt():
     parser.add_argument("--exist-ok", action="store_true", help="existing project/name ok, do not increment")
     parser.add_argument("--half", action="store_true", help="use FP16 half-precision inference")
     parser.add_argument("--dnn", action="store_true", help="use OpenCV DNN for ONNX inference")
+    parser.add_argument("--dehaze", action="store_true", help="apply dehazing preprocessing (default: False)") # dehazed option
     opt = parser.parse_args()
     opt.data = check_yaml(opt.data)  # check YAML
     opt.save_json |= opt.data.endswith("coco.yaml")
