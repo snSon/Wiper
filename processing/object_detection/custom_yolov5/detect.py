@@ -43,8 +43,7 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # remote/Wiper/processing/
 sys.path.append(str(ROOT))
 
-from dehazing.dehazing_utils import apply_dehazing
-
+from dehazing.dehazing_utils import apply_dehazing, apply_dehazing_tensor
 # -- juseok -- #
 
 import torch
@@ -196,44 +195,56 @@ def run(
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(device=device), Profile(device=device), Profile(device=device))
     for path, im, im0s, vid_cap, s in dataset:
-        ## -- dehazing : juseok -- #
-        if webcam:
-            im0 = im0s[i].copy()
-        else:
-            im0 = im0s.copy()
+        # ## -- dehazing : juseok -- #
+        # 0) 원본 프레임 가져오기 (BGR numpy)
+        im0 = im0s[0] if webcam else im0s.copy()
         
-        # dehazing 적용
-        im0 = apply_dehazing(im0)
-        
-        # -- juseok -- #
-        
+        # 1) ***CPU 디헤이징 쓰고 싶으면 이 줄만 주석 해제***
+        # im0 = apply_dehazing(im0)
+
+        # 2) numpy → torch 텐서 변환
         with dt[0]:
-            img = cv2.resize(im0, imgsz[::-1])  # (W, H) 순서
-            img = img[..., ::-1]  # BGR → RGB
-            img = np.transpose(img, (2, 0, 1))  # CHW 형식으로 img 맞추기
+            img = cv2.resize(im0, imgsz[::-1])          # (W,H)
+            img = img[..., ::-1]                        # BGR → RGB
+            img = np.transpose(img, (2, 0, 1))          # HWC → CHW
             img = np.ascontiguousarray(img)
-            
+
             im = torch.from_numpy(img).to(model.device)
-            im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
-            im /= 255  # 0 - 255 to 0.0 - 1.0
-            if len(im.shape) == 3:
-                im = im[None]  # expand for batch dim
-            if model.xml and im.shape[0] > 1:
-                ims = torch.chunk(im, im.shape[0], 0)
+            im = im.half() if model.fp16 else im.float()
+            im /= 255.0                                 # [0,255] → [0,1]
+            if im.ndim == 3:
+                im = im.unsqueeze(0)                    # (1,3,H,W)
+
+        # 3) ***Tensor 디헤이징 쓰고 싶으면 아래 두 줄 주석 해제***
+        with torch.no_grad():
+            im = apply_dehazing_tensor(im)             # (B,3,H,W) RGB 0~1
+
+        # ONNX/OpenVINO 다중 배치 분할
+        if model.xml and im.shape[0] > 1:
+            ims = torch.chunk(im, im.shape[0], 0)
         
-        # Inference
+        # 4) Inference
         with dt[1]:
-            visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if visualize else False
+            vis_path = increment_path(save_dir / Path(path).stem, mkdir=True) if visualize else False
             if model.xml and im.shape[0] > 1:
-                pred = None
-                for image in ims:
-                    if pred is None:
-                        pred = model(image, augment=augment, visualize=visualize).unsqueeze(0)
-                    else:
-                        pred = torch.cat((pred, model(image, augment=augment, visualize=visualize).unsqueeze(0)), dim=0)
-                pred = [pred, None]
+                preds = [model(x, augment=augment, visualize=vis_path).unsqueeze(0) for x in ims]
+                pred = [torch.cat(preds, dim=0), None]
             else:
-                pred = model(im, augment=augment, visualize=visualize)
+                pred = model(im, augment=augment, visualize=vis_path)
+
+        # # Inference
+        # with dt[1]:
+        #     visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if visualize else False
+        #     if model.xml and im.shape[0] > 1:
+        #         pred = None
+        #         for image in ims:
+        #             if pred is None:
+        #                 pred = model(image, augment=augment, visualize=visualize).unsqueeze(0)
+        #             else:
+        #                 pred = torch.cat((pred, model(image, augment=augment, visualize=visualize).unsqueeze(0)), dim=0)
+        #         pred = [pred, None]
+        #     else:
+        #         pred = model(im, augment=augment, visualize=visualize)
                 
 
         # Print inference time

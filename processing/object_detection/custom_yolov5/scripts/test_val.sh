@@ -11,14 +11,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 
 VAL_PY="$ROOT_DIR/val.py"
-DATA_YAML="$ROOT_DIR/data/kitti.yaml" # kitti
-PT_WEIGHTS="$ROOT_DIR/models/yolov5s_kitti.pt"  # PyTorch
-TRT_WEIGHTS="$ROOT_DIR/models/yolov5s_kitti.engine" # TensorRT
+DATA_YAML="$ROOT_DIR/data/coco128.yaml" # kitti
+PT_WEIGHTS="$ROOT_DIR/models/yolov5s.pt"  # PyTorch
+TRT_WEIGHTS="$ROOT_DIR/models/yolov5s.engine" # TensorRT
 
 IMG=640
 DEVICE=0
 WORKERS=0
 REPEAT=1  # 원하는 반복 횟수로 수정 가능
+BATCH=1
 
 # 실험 조합 정의
 declare -A experiments=(
@@ -44,11 +45,12 @@ for key in "${!experiments[@]}"; do
       --weights "$WEIGHT_PATH" \
       --data "$DATA_YAML" \
       --imgsz "$IMG" \
-      --task test \
+      --task val \
       --device "$DEVICE" \
       --workers "$WORKERS" \
       --verbose \
       --half \
+      --batch-size "$BATCH" \
       $DEHAZE_FLAG
 
     echo "[$key] run $i 완료"

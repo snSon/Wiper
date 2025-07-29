@@ -1,7 +1,8 @@
 #!/bin/bash
 
-USE_MONITORING=true # detect_runner 사용 여부
+# setting path and config =========================================================
 
+USE_MONITORING=true # detect_runner 사용 여부
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 DATA_PATH="$ROOT_DIR/data/coco128.yaml"
@@ -10,7 +11,7 @@ DATA_PATH="$ROOT_DIR/data/coco128.yaml"
 # nvpmodel -m 0
 # jetson_clocks
 
-VIDEO_PATH="$ROOT_DIR/videos/test_drive_30.mp4"
+VIDEO_PATH="$ROOT_DIR/videos/foggy_1st_padding.mp4"
 IMG_SIZE=640
 CONF=0.25
 REPEAT=1  # 반복 횟수 변수 설정
@@ -20,6 +21,10 @@ declare -A experiments
 # experiments["pt_fp32"]=""           # PyTorch FP32
 # experiments["pt_half"]="--half"     # PyTorch FP16
 experiments["trt_engine"]=""        # TensorRT 엔진
+
+declare
+
+# exec test ======================================================================
 
 if $USE_MONITORING; then
     RUN_SCRIPT="$ROOT_DIR/detect_runner.py"
