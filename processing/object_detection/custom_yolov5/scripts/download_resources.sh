@@ -1,7 +1,11 @@
 #!/bin/bash
 
+set -e
+
 # [0] 현재 스크립트 기준 루트 경로 설정
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
+
+# [1-1] 영상 파일 경로 설정
 VIDEO_DIR="$SCRIPT_DIR/videos"
 VIDEO_PATH1="$VIDEO_DIR/test_drive.mp4"
 VIDEO_PATH2="$VIDEO_DIR/test_drive_640.mp4"
@@ -11,6 +15,24 @@ VIDEO_PATH3="$VIDEO_DIR/foggy_1st_padding.mp4"
 VIDEO_ID1="1iNMtI-X5bhbP7aOyfMDur5eOHAvCnaxM"
 VIDEO_ID2="1y6Q7gwTLlk5Q1HYjnfkdaEGrVaPTkwdY"
 VIDEO_ID3="17c2b9AVaR7ARy6ZTV6xw3vrU9vjFqos9"
+
+# [1-2] 데이터셋 디렉토리 및 경로 설정
+DATASET_DIR="$(cd "$SCRIPT_DIR/../datasets" && pwd)"
+DATASET_PATH1="$DATASET_DIR/foggy_driving"
+DATASET_PATH2="$DATASET_DIR/RTTS"
+
+# Google Drive 파일 ID
+DATASET_ID1="1rckXGzzNfy09laXHOk2tf1u0NmbQiutk"
+DATASET_ID2="1LDkiM2zpydOWOK-QzUYznLiY-V-89PCa"
+
+foggy_driving_zip="$DATASET_DIR/foggy_driving.zip"
+RTTS_zip="$DATASET_DIR/RTTS.zip"
+
+# [1-3] 데이터셋 yaml 파일 경로 설정
+DATASET_YAML="$SCRIPT_DIR/data"
+
+DATASET_YAML_ID1="1pW3SmiVgB1NorC7OXFS9J2Zcpz_4_Jko"
+DATASET_YAML_ID2="1PTga5VDoXJZjlr793N4qhsSDtl7Y0A_b"
 
 # gdown 설치 확인 및 설치 시도
 if ! command -v gdown &> /dev/null; then
@@ -25,29 +47,72 @@ if ! command -v gdown &> /dev/null; then
     fi
 fi
 
-# 영상 디렉토리 없으면 생성
+# unzip 설치 확인
+if ! command -v unzip &> /dev/null; then
+    echo "unzip이 설치되지 않았습니다. 설치 중..."
+    sudo apt update && sudo apt install unzip -y
+fi
+
+# 영상/데이터셋 디렉터리 없으면 생성
 mkdir -p "$VIDEO_DIR"
+mkdir -p "$DATASET_DIR"
+mkdir -p "$DATASET_YAML"
 
-# 각 영상 파일이 없을 경우에만 다운로드
-if [ ! -f "$VIDEO_PATH1" ]; then
-    echo "test_drive.mp4 다운로드 중..."
-    gdown https://drive.google.com/uc?id=$VIDEO_ID1 -O "$VIDEO_PATH1"
+# [2] 영상 다운로드
+for i in 1 2 3; do
+    VIDEO_PATH_VAR="VIDEO_PATH$i"
+    VIDEO_ID_VAR="VIDEO_ID$i"
+    if [ ! -f "${!VIDEO_PATH_VAR}" ]; then
+        echo "$(basename "${!VIDEO_PATH_VAR}") 다운로드 중..."
+        gdown "https://drive.google.com/uc?id=${!VIDEO_ID_VAR}" -O "${!VIDEO_PATH_VAR}"
+    else
+        echo "✅ 이미 존재: ${!VIDEO_PATH_VAR}"
+    fi
+done
+
+# [3] foggy_driving.zip 다운로드 및 압축 해제
+if [ ! -d "$DATASET_PATH1" ]; then
+    if [ ! -f "$foggy_driving_zip" ]; then
+        echo "foggy_driving.zip 다운로드 중..."
+        gdown "https://drive.google.com/uc?id=$DATASET_ID1" -O "$foggy_driving_zip"
+    fi
+    echo "압축 해제 중 (foggy_driving)..."
+    unzip "$foggy_driving_zip" -d "$DATASET_DIR"
 else
-    echo "✅ 이미 존재: $VIDEO_PATH1"
+    echo "✅ 이미 압축 해제됨: $DATASET_PATH1"
 fi
 
-if [ ! -f "$VIDEO_PATH2" ]; then
-    echo "test_drive_640.mp4 다운로드 중..."
-    gdown https://drive.google.com/uc?id=$VIDEO_ID2 -O "$VIDEO_PATH2"
+# [4] RTTS.zip 다운로드 및 압축 해제
+if [ ! -d "$DATASET_PATH2" ]; then
+    if [ ! -f "$RTTS_zip" ]; then
+        echo "RTTS.zip 다운로드 중..."
+        gdown --fuzzy "https://drive.google.com/uc?id=$DATASET_ID2" -O "$RTTS_zip"
+    fi
+    # echo "압축 해제 중 (rtts)..."
+    # unzip "$RTTS_zip" -d "$DATASET_DIR"
 else
-    echo "✅ 이미 존재: $VIDEO_PATH2"
+    echo "✅ 이미 압축 해제됨: $DATASET_PATH2"
 fi
 
-if [ ! -f "$VIDEO_PATH3" ]; then
-    echo "foggy_1st_padding.mp4 다운로드 중..."
-    gdown https://drive.google.com/uc?id=$VIDEO_ID3 -O "$VIDEO_PATH3"
-else
-    echo "✅ 이미 존재: $VIDEO_PATH3"
-fi
+
+# [5] 데이터셋 yaml 파일 다운로드
+declare -a YAML_NAMES=("foggy_driving.yaml" "rtts.yaml")
+declare -a YAML_IDS=("$DATASET_YAML_ID1" "$DATASET_YAML_ID2")
+
+for i in 0 1; do
+    FILE_NAME="${YAML_NAMES[$i]}"
+    FILE_ID="${YAML_IDS[$i]}"
+    FILE_PATH="$DATASET_YAML/$FILE_NAME"
+
+    if [ ! -f "$FILE_PATH" ]; then
+        echo "$FILE_NAME 다운로드 중..."
+        gdown --fuzzy "https://drive.google.com/uc?id=$FILE_ID" -O "$FILE_PATH"
+    else
+        echo "✅ 이미 존재: $FILE_PATH"
+    fi
+done
+
+rm "$foggy_driving_zip"
+# rm "$RTTS_zip"
 
 echo "모든 리소스가 준비되었습니다."
