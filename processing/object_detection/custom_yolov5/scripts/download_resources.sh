@@ -19,14 +19,14 @@ VIDEO_ID3="17c2b9AVaR7ARy6ZTV6xw3vrU9vjFqos9"
 # [1-2] 데이터셋 디렉토리 및 경로 설정
 DATASET_DIR="$(cd "$SCRIPT_DIR/../datasets" && pwd)"
 DATASET_PATH1="$DATASET_DIR/foggy_driving"
-DATASET_PATH2="$DATASET_DIR/RTTS"
+DATASET_PATH2="$DATASET_DIR/rtts"
 
 # Google Drive 파일 ID
 DATASET_ID1="1rckXGzzNfy09laXHOk2tf1u0NmbQiutk"
-DATASET_ID2="1LDkiM2zpydOWOK-QzUYznLiY-V-89PCa"
+DATASET_ID2="1zRmBUI9iGz81dY9T6L5MfYfYepLqW9JW"
 
 foggy_driving_zip="$DATASET_DIR/foggy_driving.zip"
-RTTS_zip="$DATASET_DIR/RTTS.zip"
+rtts_zip="$DATASET_DIR/rtts.zip"
 
 # [1-3] 데이터셋 yaml 파일 경로 설정
 DATASET_YAML="$SCRIPT_DIR/data"
@@ -82,14 +82,14 @@ else
     echo "✅ 이미 압축 해제됨: $DATASET_PATH1"
 fi
 
-# [4] RTTS.zip 다운로드 및 압축 해제
+# [4] rtts.zip 다운로드 및 압축 해제
 if [ ! -d "$DATASET_PATH2" ]; then
-    if [ ! -f "$RTTS_zip" ]; then
-        echo "RTTS.zip 다운로드 중..."
-        gdown --fuzzy "https://drive.google.com/uc?id=$DATASET_ID2" -O "$RTTS_zip"
+    if [ ! -f "$rtts_zip" ]; then
+        echo "rtts.zip 다운로드 중..."
+        gdown --fuzzy "https://drive.google.com/uc?id=$DATASET_ID2" -O "$rtts_zip"
     fi
-    # echo "압축 해제 중 (rtts)..."
-    # unzip "$RTTS_zip" -d "$DATASET_DIR"
+    echo "압축 해제 중 (rtts)..."
+    unzip "$rtts_zip" -d "$DATASET_DIR"
 else
     echo "✅ 이미 압축 해제됨: $DATASET_PATH2"
 fi
@@ -113,6 +113,6 @@ for i in 0 1; do
 done
 
 rm "$foggy_driving_zip"
-# rm "$RTTS_zip"
+rm "$rtts_zip"
 
 echo "모든 리소스가 준비되었습니다."
