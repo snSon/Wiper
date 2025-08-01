@@ -1,4 +1,4 @@
-# remote/Wiper/processing/dehazing/dehazing_pipeline.py
+# dehazing_utils.py
 
 import torch
 import numpy as np
@@ -19,6 +19,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = JetDehazeNet().to(device)
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "JetDehaze/JetDehaze.pth")
 
+
 # AOD 가져오기
 # model = AODNet().to(device)
 # MODEL_PATH = os.path.join(os.path.dirname(__file__), "AOD/AOD_NET.pth")
@@ -27,9 +28,8 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "JetDehaze/JetDehaze.pth")
 
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
-# model.half()  # FP16로 변환 ""cpu 기반 API에서는 반드시 꺼야 함""
 
-to_tensor = transforms.ToTensor() # cpu version api
+# model.half()  # fp16로 변환 (사용x)
 
 # ToTensor 변환 함수
 @torch.inference_mode()
@@ -58,6 +58,9 @@ def apply_dehazing_tensor(t_img): # t_img: (B, 3, H, W) fp16/32, [0, 1] RGB
 
     # 6) 값 범위 보정
     return t_out.clamp_(0, 1)
+
+# ToTensor 변환 함수 (CPU 버전)
+to_tensor = transforms.ToTensor() # cpu version api
 
 def apply_dehazing(frame_bgr):
     frame_bgr = cv2.resize(frame_bgr, (640, 360))
