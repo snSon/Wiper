@@ -10,8 +10,9 @@ set -e # error: 스크립트 실행 중 오류 발생 시 즉시 종료
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 
+# VAL_PY="$ROOT_DIR/val.py"
 VAL_PY="$ROOT_DIR/val.py"
-DATA_YAML="$ROOT_DIR/data/coco128.yaml" # kitti
+DATA_YAML="$ROOT_DIR/data/coco128.yaml"
 PT_WEIGHTS="$ROOT_DIR/models/yolov5s.pt"  # PyTorch
 TRT_WEIGHTS="$ROOT_DIR/models/yolov5s.engine" # TensorRT
 

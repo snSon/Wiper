@@ -16,17 +16,22 @@ VIDEO_ID1="1iNMtI-X5bhbP7aOyfMDur5eOHAvCnaxM"
 VIDEO_ID2="1y6Q7gwTLlk5Q1HYjnfkdaEGrVaPTkwdY"
 VIDEO_ID3="17c2b9AVaR7ARy6ZTV6xw3vrU9vjFqos9"
 
+mkdir -p $SCRIPT_DIR/datasets
+
 # [1-2] 데이터셋 디렉토리 및 경로 설정
 DATASET_DIR="$(cd "$SCRIPT_DIR/../datasets" && pwd)"
 DATASET_PATH1="$DATASET_DIR/foggy_driving"
 DATASET_PATH2="$DATASET_DIR/rtts"
+DATASET_PATH3="$DATASET_DIR/foggy_coco128"
 
 # Google Drive 파일 ID
 DATASET_ID1="1rckXGzzNfy09laXHOk2tf1u0NmbQiutk"
 DATASET_ID2="1zRmBUI9iGz81dY9T6L5MfYfYepLqW9JW"
+DATASET_ID3="1KAAuoe1gT10ji_PYpy1wq5GCe_2YOR9Q"
 
 foggy_driving_zip="$DATASET_DIR/foggy_driving.zip"
 rtts_zip="$DATASET_DIR/rtts.zip"
+foggy_coco128_zip="$DATASET_DIR/foggy_coco128.zip"
 
 # [1-3] 데이터셋 yaml 파일 경로 설정
 DATASET_YAML="$SCRIPT_DIR/data"
@@ -55,7 +60,6 @@ fi
 
 # 영상/데이터셋 디렉터리 없으면 생성
 mkdir -p "$VIDEO_DIR"
-mkdir -p "$DATASET_DIR"
 mkdir -p "$DATASET_YAML"
 
 # [2] 영상 다운로드
@@ -94,8 +98,19 @@ else
     echo "✅ 이미 압축 해제됨: $DATASET_PATH2"
 fi
 
+# [5] foggy_coco128.zip 다운로드 및 압축 해제
+if [ ! -d "$DATASET_PATH3" ]; then
+    if [ ! -f "$foggy_coco128_zip" ]; then
+        echo "foggy_coco128.zip 다운로드 중..."
+        gdown --fuzzy "https://drive.google.com/uc?id=$DATASET_ID3" -O "$foggy_coco128_zip"
+    fi
+    echo "압축 해제 중 (rtts)..."
+    unzip "$foggy_coco128_zip" -d "$DATASET_DIR"
+else
+    echo "✅ 이미 압축 해제됨: $DATASET_PATH3"
+fi
 
-# [5] 데이터셋 yaml 파일 다운로드
+# [6] 데이터셋 yaml 파일 다운로드
 declare -a YAML_NAMES=("foggy_driving.yaml" "rtts.yaml")
 declare -a YAML_IDS=("$DATASET_YAML_ID1" "$DATASET_YAML_ID2")
 
@@ -114,5 +129,6 @@ done
 
 rm "$foggy_driving_zip"
 rm "$rtts_zip"
+rm "$foggy_coco128_zip"
 
 echo "모든 리소스가 준비되었습니다."
