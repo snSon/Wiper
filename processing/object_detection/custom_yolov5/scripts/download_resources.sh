@@ -16,7 +16,7 @@ VIDEO_ID1="1iNMtI-X5bhbP7aOyfMDur5eOHAvCnaxM"
 VIDEO_ID2="1y6Q7gwTLlk5Q1HYjnfkdaEGrVaPTkwdY"
 VIDEO_ID3="17c2b9AVaR7ARy6ZTV6xw3vrU9vjFqos9"
 
-mkdir -p $SCRIPT_DIR/datasets
+mkdir -p $SCRIPT_DIR/../datasets
 
 # [1-2] 데이터셋 디렉토리 및 경로 설정
 DATASET_DIR="$(cd "$SCRIPT_DIR/../datasets" && pwd)"
