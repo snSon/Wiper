@@ -12,9 +12,9 @@ VIDEO_PATH2="$VIDEO_DIR/test_drive_640.mp4"
 VIDEO_PATH3="$VIDEO_DIR/foggy_1st_padding.mp4"
 
 # Google Drive 파일 ID
-VIDEO_ID1="1iNMtI-X5bhbP7aOyfMDur5eOHAvCnaxM"
-VIDEO_ID2="1y6Q7gwTLlk5Q1HYjnfkdaEGrVaPTkwdY"
-VIDEO_ID3="17c2b9AVaR7ARy6ZTV6xw3vrU9vjFqos9"
+VIDEO_ID1="1oYrDZfQ7Mdgf944HwEZmz9FKRULrf_A9"
+VIDEO_ID2="1vQOe5KEnM9IDuxf_Y8KUPNSOtu9BLTzV"
+VIDEO_ID3="1zlwLbKzsWDUqry4bDz9spMxrolg38Y07"
 
 mkdir -p $SCRIPT_DIR/../datasets
 
@@ -27,7 +27,7 @@ DATASET_PATH3="$DATASET_DIR/foggy_coco128"
 # Google Drive 파일 ID
 DATASET_ID1="1rckXGzzNfy09laXHOk2tf1u0NmbQiutk"
 DATASET_ID2="1zRmBUI9iGz81dY9T6L5MfYfYepLqW9JW"
-DATASET_ID3="1KAAuoe1gT10ji_PYpy1wq5GCe_2YOR9Q"
+DATASET_ID3="1byTXhk0-khGOx6S3Ay5hNPIQ3N3Seis6"
 
 foggy_driving_zip="$DATASET_DIR/foggy_driving.zip"
 rtts_zip="$DATASET_DIR/rtts.zip"
