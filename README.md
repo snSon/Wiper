@@ -156,12 +156,16 @@ pt_FP16 vs engine: [FP16 비교 영상](https://www.youtube.com/shorts/BWZi6F-8A
 ## 1. 환경 설정 
 프로젝트에 필요한 Python 패키지 및 라이브러리는 `requirements.txt` 파일에 명시되어 있습니다. 아래 절차를 따라 환경을 설정해 주세요.
 
-1. **레포지토리 클론**
+
+0. **docker container를 이용한 환경설정**(NVIDIA's Jetson Orin Nano Developer Kit 환경)
+   docker image: [링크](https://hub.docker.com/repository/docker/wldhks1959/jetson_yolov5_custom/general)   
+
+2. **레포지토리 클론**
     ```bash
     git clone https://github.com/snSon/Wiper.git
     cd Wiper
     ```
-2. **의존성 설치**   
+3. **의존성 설치**   
    `requirements.txt` 파일을 사용하여 필요한 모든 Python 패키지를 설치합니다.
      ```bash
     pip install -r requirements.txt
