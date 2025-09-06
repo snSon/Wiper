@@ -141,8 +141,6 @@ pt vs engine: [pt 비교 영상](https://www.youtube.com/shorts/BWZi6F-8AA0)
 
 pt_FP16 vs engine: [FP16 비교 영상](https://www.youtube.com/shorts/BWZi6F-8AA0)
 
-* 시각화된 객체 탐지 결과 예시 포함 예정
-
 ---
 
 # 라이선스
@@ -158,7 +156,7 @@ pt_FP16 vs engine: [FP16 비교 영상](https://www.youtube.com/shorts/BWZi6F-8A
 프로젝트에 필요한 Python 패키지 및 라이브러리는 `requirements.txt` 파일에 명시되어 있습니다. 아래 절차를 따라 환경을 설정해 주세요.
 
 
-0. **docker container를 이용한 환경설정**(NVIDIA's Jetson Orin Nano Developer Kit 환경)   
+0. **Environment Setting for Docker Container**(env: NVIDIA's Jetson Orin Nano Developer Kit)   
    docker image: [링크](https://hub.docker.com/repository/docker/wldhks1959/jetson_yolov5_custom/general)   
 
 2. **레포지토리 클론**
@@ -213,4 +211,5 @@ cd Wiper/processing/object_detection/custom_yolov5/scripts
 * [서지완] (https://github.com/wldhks1959)
 * [손주석] (https://github.com/snSon)
 * [이준영] (https://github.com/jun-yeong1)
+* [이재웅] (https://github.com/pgjaeung)
 * [최창욱] (https://github.com/ourwater5287)
