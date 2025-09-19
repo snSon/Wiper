@@ -206,10 +206,13 @@ cd Wiper/processing/object_detection/custom_yolov5/scripts
 ## 향후 계획 및 확장 방향
 1. **디헤이징 모델 성능 최적화**: 현재 디헤이징 모델을 추가적으로 개선하여, 더욱 향상된 영상 품질과 함께 **완전한 실시간 추론 성능을 확보**하는 것을 목표로 합니다.
 2. **통합 제어 시스템 개발**: 현재는 분리된 프로세스로 동작하는 객체 인식 결과 기반 제어 신호 생성 부분을 전체 시스템에 완전히 병합하여, 단일 파이프라인으로 **일관성 있는 실시간 동작이 가능**하도록 구현할 예정입니다.
-## 기여자 목록 및 연락처
-* [박준현] (https://github.com/p-jh0)
-* [서지완] (https://github.com/wldhks1959)
-* [손주석] (https://github.com/snSon)
-* [이준영] (https://github.com/jun-yeong1)
-* [이재웅] (https://github.com/pgjaeung)
-* [최창욱] (https://github.com/ourwater5287)
+
+## 기여자 목록 및 Github 주소
+| 이름     | GitHub 주소                                 |
+|----------|--------------------------------------------|
+| 박준현   | [https://github.com/p-jh0](https://github.com/p-jh0)           |
+| 서지완   | [https://github.com/wldhks1959](https://github.com/wldhks1959) |
+| 손주석   | [https://github.com/snSon](https://github.com/snSon)           |
+| 이준영   | [https://github.com/jun-yeong1](https://github.com/jun-yeong1) |
+| 이재웅   | [https://github.com/pgjaeung](https://github.com/pgjaeung)     |
+| 최창욱   | [https://github.com/ourwater5287](https://github.com/ourwater5287) |
