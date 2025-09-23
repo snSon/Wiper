@@ -6,7 +6,7 @@ import sys
 FOG_IMG_DIR = Path("/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti_fog/images")
 FOG_LAB_DIR = Path("/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti_fog/labels")
 
-# 기존 분리된 kitti 이미지 폴더
+# 기존 분리된 KITTI 이미지 폴더
 SPLIT_IMG_DIR = Path("/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti_split/images")
 
 # 결과 저장할 폴더

@@ -18,7 +18,7 @@ import random
 import shutil
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="KITTI 데이터셋 분할 및 복사 스크립트")
+    parser = argparse.ArgumentParser(description="KITTI dataset split and copy script")
     parser.add_argument('--src_dir', type=str,
                         default='/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti/images/',
                         help='원본 이미지 경로 (images 디렉토리)')
@@ -28,8 +28,8 @@ def parse_args():
     parser.add_argument('--dst_dir', type=str,
                         default='/workspace/wiper/jiwan/Wiper/processing/object_detection/datasets/kitti_split/',
                         help='분할된 데이터셋 저장 경로')
-    parser.add_argument('--ext', type=str, default='png', help='이미지 확장자 (default: png)')
-    parser.add_argument('--seed', type=int, default=42, help='랜덤 시드 설정 (default: 42)')
+    parser.add_argument('--ext', type=str, default='png', help='image format (default: png)')
+    parser.add_argument('--seed', type=int, default=42, help='random seed setting (default: 42)')
     return parser.parse_args()
 
 def main():
@@ -66,11 +66,6 @@ def main():
     for split in ['train', 'val', 'test']:
         os.makedirs(os.path.join(dst, 'images', split), exist_ok=True)
         os.makedirs(os.path.join(dst, 'labels', split), exist_ok=True)
-
-    # # 전체 리스트 저장
-    # with open(os.path.join(dst, 'list.txt'), 'w') as f:
-    #     for img in imgs:
-    #         f.write(img + '\n')
 
     # split별 처리
     for name, files in splits.items():
