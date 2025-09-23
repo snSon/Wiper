@@ -12,22 +12,22 @@ ROOT_DIR="$SCRIPT_DIR/.."
 
 # VAL_PY="$ROOT_DIR/val.py"
 VAL_PY="$ROOT_DIR/val.py"
-DATA_YAML="$ROOT_DIR/data/coco128.yaml"
+DATA_YAML="$ROOT_DIR/data/rtts.yaml"
 PT_WEIGHTS="$ROOT_DIR/models/yolov5s.pt"  # PyTorch
 TRT_WEIGHTS="$ROOT_DIR/models/yolov5s.engine" # TensorRT
 
 IMG=640
 DEVICE=0
 WORKERS=0
-REPEAT=1  # 원하는 반복 횟수로 수정 가능
+REPEAT=2  # 원하는 반복 횟수로 수정 가능
 BATCH=1
 
 # 실험 조합 정의
 declare -A experiments=(
-  [pt]="$PT_WEIGHTS"
-  [pt_dehaze]="$PT_WEIGHTS"
+  # [pt]="$PT_WEIGHTS"
+  # [pt_dehaze]="$PT_WEIGHTS"
   [trt_engine]="$TRT_WEIGHTS"
-  [trt_engine_dehaze]="$TRT_WEIGHTS"
+  # [trt_engine_dehaze]="$TRT_WEIGHTS"
 )
 
 # exec test ======================================================================

@@ -19,8 +19,8 @@ REPEAT=1  # 반복 횟수 변수 설정
 # 실험 조합 정의 
 declare -A experiments
 # experiments["pt_fp32"]=""           # PyTorch FP32
-experiments["pt_half"]="--half"     # PyTorch FP16
-# experiments["trt_engine"]=""        # TensorRT 엔진
+# experiments["pt_half"]="--half"     # PyTorch FP16
+experiments["trt_engine"]=""        # TensorRT 엔진
 
 # exec test ======================================================================
 
