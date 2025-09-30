@@ -1,4 +1,5 @@
 # data/kitti.yaml
+# Train/val/test sets
 path: ../datasets/kitti_split
 train: images/train # train images (relative to 'path')  5984/7481 images
 val: images/val # val images (relative to 'path') 748/7481 images
