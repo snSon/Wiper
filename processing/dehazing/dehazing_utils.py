@@ -1,12 +1,13 @@
 # dehazing_utils.py
 
+## =========== Dehazing Utilities =========== ##
 import torch
 import numpy as np
 import torchvision.transforms as transforms
 import cv2
 import os
 
-import torch.nn.functional as F # F.interpolate 사용
+import torch.nn.functional as F # F.interpolate
 from dehazing.JetDehaze.JetDehaze import JetDehazeNet
 from dehazing.AOD.AOD import AODNet
 
@@ -50,14 +51,10 @@ def apply_dehazing_tensor(t_img): # t_img: (B, 3, H, W) fp16/32, [0, 1] RGB
     else:
         t_small = t_img
 
-    # 4) 모델 추론
-    t_out = model(t_small)
-    
-    # 5) 원본 해상도로 복원
-    t_out = F.interpolate(t_out, size=t_img.shape[2:], mode="bilinear", align_corners=False)
+    t_out = model(t_small) # 모델 추론
+    t_out = F.interpolate(t_out, size=t_img.shape[2:], mode="bilinear", align_corners=False) # 원본 해상도로 복원
 
-    # 6) 값 범위 보정
-    return t_out.clamp_(0, 1)
+    return t_out.clamp_(0, 1) # 값 범위 보정
 
 # ToTensor 변환 함수 (CPU 버전)
 to_tensor = transforms.ToTensor() # cpu version api
