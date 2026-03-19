@@ -107,8 +107,8 @@
 | model | SSIM | PSNR | Inference Time |
 | :--- | :--- | :--- | :--- |
 | AOD-Net | 0.9127 | 21.7008 | 20 |
-| MSBDN | 0.9137 | 22.9295 | 30 |
-| **JetDehaze (ours)** | 0.9154 | 23.8489 | 480 |
+| MSBDN | 0.9137 | 22.9295 | 480 |
+| **JetDehaze (ours)** | 0.9154 | 23.8489 | 30 |
 | FFA-Net | 0.9184 | 24.2713 | 1310 |
 
   * Training Dataset : RESIDE-Standard(ITS)
